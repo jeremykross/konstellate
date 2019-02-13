@@ -1,0 +1,16 @@
+/out
+/target
+/classes
+/checkouts
+/target
+pom.xml
+pom.xml.asc
+*.jar
+*.class
+/.lein-*
+/.nrepl-port
+.hgignore
+.hg/
+.cpcache
+*.swp
+*.swo

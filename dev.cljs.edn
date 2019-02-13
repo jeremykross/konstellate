@@ -1,0 +1,2 @@
+^{:css-dirs ["resources/public/css"]}
+{:main konstellate.core}

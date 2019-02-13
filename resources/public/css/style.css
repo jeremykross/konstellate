@@ -1,0 +1,222 @@
+html, body {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  width: 100%;
+  font-family: 'Rubik', sans-serif;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-style: sans-serif;
+  background: #f4f6fc;
+  color: #081018;
+}
+
+h1 {
+  font-size: 32px;
+  letter-spacing: 4px;
+}
+
+#app {
+  width: 100%;
+  height: 100%;
+}
+
+body * {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.button {
+  min-width: 128px;
+  line-height: 40px;
+  height: 40px;
+  border: 1px solid white;
+  padding: 0 32px;
+  text-align: center;
+  cursor: pointer;
+  font-weight: bold;
+  border-radius: 1000px;
+  color: white;
+}
+
+.button.outline {
+  color: #212b35;
+  border: 1px solid #dfe3e8;
+  background: none;
+}
+
+.button.primary {
+  background: black;
+  border: 1px solid transparent;
+  color: white;
+}
+
+.button.inverse {
+  background: white;
+  border: 1px solid #dfe3e8;
+  color: #212b35;
+}
+
+.floating-menu {
+  min-width: 256px;
+  margin: 32px;
+  transform-origin: 50% 0;
+  border: 1px solid #d9e1ff;
+  padding: 8px 0;
+  transform: rotateX(32deg);
+  position: absolute;
+  box-shadow: 0 5px 25px 0 rgba(46, 91, 255, 0.4);
+  border-radius: 4px;
+  perspective: 100px;
+  transition: transform 300ms ease, opacity 300ms ease;
+  background: white;
+  opacity: 0;
+}
+
+.floating-menu.open {
+  opacity: 1;
+  transform: rotateX(0deg);
+}
+
+.floating-menu ol {
+  list-style-type: none;
+}
+
+.floating-menu ol li {
+  cursor: pointer;
+  font-weight: bold;
+  padding: 16px;
+  text-align: center;
+}
+
+.floating-menu ol li:hover {
+  background: #00a2ff;
+}
+
+.title-bar {
+  background: white;
+  border-bottom: 1px solid #d9e1ff;
+  display: flex;
+  align-items: center;
+  height: 88px;
+  padding: 32px;
+  position: relative;
+}
+
+.title-bar .workspace {
+  cursor: pointer;
+  font-weight: bold;
+  position: absolute;
+  text-align: center;
+  width: 100%;
+}
+
+.title-bar .more {
+  cursor: pointer;
+  display: block;
+  margin-left: auto;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  width: 100%;
+  font-family: 'Rubik', sans-serif;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-style: sans-serif;
+  background: #f4f6fc;
+  color: #081018;
+}
+
+h1 {
+  font-size: 32px;
+  letter-spacing: 4px;
+}
+
+#app {
+  width: 100%;
+  height: 100%;
+}
+
+body * {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.workspace-label {
+  overflow: hidden;
+  position: relative;
+}
+
+.workspace-label .content {
+  line-height: 1.5em;
+  top: 0;
+  padding: 16px 32px;
+  position: relative;
+  z-index: 1;
+  font-weight: bold;
+  display: flex;
+  transition: top 500ms ease;
+  background: white;
+}
+
+.workspace-label .content.confirming {
+  top: 56px;
+}
+
+.workspace-label .content icon {
+  cursor: pointer;
+}
+
+.workspace-label .content .the-name {
+  flex: 1;
+  margin-left: 8px;
+}
+
+.workspace-label .content:hover .more {
+  display: none;
+}
+
+.workspace-label .confirm {
+  line-height: 1.5em;
+  width: 100%;
+  top: 0;
+  height: 100%;
+  align-items: center;
+  padding: 0 32px;
+  position: absolute;
+  font-weight: bold;
+  display: flex;
+  background: red;
+  color: white;
+  left: 0;
+}
+
+.workspace-label .confirm label {
+  margin-right: auto;
+}
+
+.workspace-label .confirm .btn {
+  border: 1px solid white;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 16px;
+  text-align: center;
+  width: 72px;
+}
+
+.workspace-panel {
+
+}
