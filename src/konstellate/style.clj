@@ -5,7 +5,10 @@
     [garden.def :refer [defkeyframes]]
     [konstellate.components.style :as components]))
 
+(def shadow-color "rgba(46, 91, 255, 0.4)")
 (def shadow "0 5px 25px 0 rgba(46, 91, 255, 0.4)")
+(def left-shadow "5px 0px 25px 0 rgba(46, 91, 255, 0.4)")
+
 (def primary "#FEA7BD")
 (def secondary "#09EDC8")
 (def grey "#f4f6fc")
@@ -39,6 +42,26 @@
                :margin 0
                :padding 0}]]])
 
+(def Main [:.main {:display "flex"
+                   :flex-direction "column"
+                   :width "100%"
+                   :height "100%"}
+           [:.main-content {:display "flex"
+                            :flex 1}
+            [:.workspaces {:display "flex"
+                           :flex-direction "column"
+                           :height "100%"}
+             [:icon {:font-size "18px"
+                     :margin-right "8px"}]
+             [:.add {:border-top (str "1px solid " border)
+                     :display "flex"
+                     :align-items "center"
+                     :font-size "14px"
+                     :padding "16px 0 16px 29px"}]]
+            [:.graffle {:box-shadow left-shadow
+                        :flex 1
+                        :z-index 2}]]])
+
 (def TitleBar
   [:.title-bar {:background "white"
                 :border-bottom (str "1px solid " border)
@@ -46,7 +69,8 @@
                 :align-items "center"
                 :height "88px"
                 :padding "32px"
-                :position "relative"}
+                :position "relative"
+                :z-index 3}
    [:.workspace {:cursor "pointer"
                  :font-weight "bold"
                  :position "absolute"
@@ -80,28 +104,59 @@
           :text-align "center"}
      [:&:hover {:background highlight}]]]])
 
-(def WorkspacePanel
-  [:.workspace-panel {}])
+(def SidePanel
+  [:.side-panel {:background "white"
+                 :height "100%"
+                 :overflow "hidden"
+                 :position "relative"
+                 :width "32px"
+                 :transition "width 500ms ease"}
+   [:&.open {:width "256px"}
+    [(garden.selectors/> "" :.side-panel-content) {:opacity 1}]]
+
+   [:h4 {:letter-spacing "1.8px"
+         :margin "32px 0 8px 32px"}]
+   [:.side-panel-content {:height "100%"
+                          :opacity 0
+                          :width "256px"
+                          :transition "opacity 500ms ease"}]
+   [:.open-arrow {:cursor "pointer"
+                  :position "absolute"
+                  :font-size "14px"
+                  :left 0
+                  :margin-top "8px"
+                  :text-align "center"
+                  :top 0
+                  :transform-origin "50% 50%"
+                  :transition "transform 500ms ease"
+                  :width "32px"
+                  :z-index "2"}
+    [:&.open {:transform "rotate(-180deg)"}]]])
+
 
 (def WorkspaceLabel
-  [:.workspace-label {:overflow "hidden"
+  [:.workspace-label {:cursor "pointer"
+                      :overflow "hidden"
                       :position "relative"}
-   [:.content {:background "white"
-               :display "flex"
-               :font-weight "bold"
-               :padding "16px 32px"
-               :position "relative"
-               :top "0"
-               :line-height "1.5em"
-               :transition "top 500ms ease"
-               :z-index 1}
+   [".workspace-label-content:hover .close" {:display "block"}]
+   [:.workspace-label-content {:background "white"
+                               :display "flex"
+                               :font-size "14px"
+                               :padding "8px 32px"
+                               :position "relative"
+                               :top "0"
+                               :line-height "1.5em"
+                               :transition "top 500ms ease"
+                               :z-index 1}
     [:&.confirming {:top "56px"}]
-    [:icon {:cursor "pointer"}]
-    [:.the-name {:flex 1
-                 :margin-left "8px"}]]
-   [".content:hover .more" {:display "none"}]
+    [:&.selected {:background "lightblue"}]
+    [:.close {:display "none"}]
+    [:icon {:cursor "pointer"
+            :font-size "18px"}]
+    [:.the-name {:flex 1}]]
    [:.confirm {:align-items "center"
                :background "red"
+               :box-shadow (str "inset 0px 0px 25px " shadow-color)
                :color "white"
                :display "flex"
                :left 0
@@ -116,18 +171,21 @@
     [:.btn {:border "1px solid white"
             :border-radius "4px"
             :cursor "pointer"
-            :margin-left "16px"
+            :margin-left "8px"
             :text-align "center"
             :width "72px"}]]])
 
+(def WorkspaceList [:.workload-panel {:flex 1}])
 
 (def styles
   [components/Button
    FloatingMenu
+   Main
    TitleBar
    Reset
    WorkspaceLabel
-   WorkspacePanel])
+   WorkspaceList
+   SidePanel])
 
 (defn spit-styles!
   []

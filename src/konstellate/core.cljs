@@ -2,28 +2,62 @@
   (:require
     recurrent.core
     recurrent.drivers.dom
+    recurrent.state
     [konstellate.components :as components]
     [ulmus.signal :as ulmus]))
 
 (def initial-state
-  {:gensym {:canonical {:name "Foo"
-                        :yaml {:gensym {}}}
-            :edited {:name "Foo"
-                     :yaml  {:gensym {}}}}})
+  {:workspaces
+   {:gensym {:canonical {:name "Foo"
+                         :yaml {:gensym {}}}
+             :edited {:name "Foo"
+                      :yaml  {:gensym {:foo "bar"}}}}
+    :gensym1 {:edited {:name "Bar"}}}})
 
 (defn Main
   [props sources]
-  (let [c (components/WorkspacePanel {} 
-                                     {:recurrent/dom-$ (:recurrent/dom-$ sources)
-                                      :workspaces-$ (ulmus/signal-of {:foo {:name "Foo"
-                                                                            :dirty? false}
-                                                                      :bar {:name "Bar"
-                                                                            :dirty? false}})})]
-    c))
+  (let [title-bar (components/TitleBar {}
+                                       {:recurrent/dom-$ (:recurrent/dom-$ sources)})
+        workload-list (components/WorkspaceList
+                        {} 
+                        {:recurrent/dom-$ (:recurrent/dom-$ sources)
+                         :workspaces-$ (ulmus/map 
+                                         (fn [state]
+                                           (into {}
+                                             (map (fn [[id workspace]]
+                                                    [id {:name (get-in workspace [:edited :name])
+                                                         :dirty? (not= (get-in workspace [:canonical :yaml])
+                                                                       (get-in workspace [:edited :yaml]))}])
+                                                  (:workspaces state))))
+                                         (:recurrent/state-$ sources))})
+        side-panel (components/SidePanel
+                     {}
+                     {:dom-$ 
+                      (ulmus/map (fn [workload-list-dom]
+                                   [:div {:class "workspaces"}
+                                    [:h4 "Workspaces"]
+                                    workload-list-dom
+                                    [:div {:class "add"}
+                                     [:icon {:class "material-icons"}
+                                      "add"] 
+                                     [:div "Add Workspace"]]])
+                      (:recurrent/dom-$ workload-list))
+                      :recurrent/dom-$ (:recurrent/dom-$ sources)})]
+    {:recurrent/state-$ (ulmus/signal-of (fn [] initial-state))
+     :recurrent/dom-$
+      (ulmus/map
+        (fn [[title-bar-dom side-panel-dom]]
+          [:div {:class "main"}
+           title-bar-dom
+           [:div {:class "main-content"}
+            side-panel-dom
+            [:div {:class "graffle"}]]])
+        (ulmus/zip (:recurrent/dom-$ title-bar)
+                   (:recurrent/dom-$ side-panel)))}))
 
 (defn start!
   []
   (recurrent.core/start!
-    Main
+    (recurrent.state/with-state Main)
     {}
     {:recurrent/dom-$ (recurrent.drivers.dom/for-id! "app")}))

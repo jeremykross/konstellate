@@ -49,20 +49,25 @@
     ; remove-$
 
     {:recurrent/dom-$ (ulmus/map
-                        (fn [[the-name confirm? dirty?]]
+                        (fn [[the-name selected? confirm? dirty?]]
                           (println confirm?)
-                          [:div {:class "workspace-label"}
-                           [:div {:class (str "content " (if confirm? "confirming"))}
+                          [:div {:data-id (str (name (:id props)))
+                                 :class "workspace-label"
+                                 :draggable true}
+                           [:div {:class (str "workspace-label-content "
+                                              (if confirm? "confirming ")
+                                              (if selected? "selected"))}
                             (if dirty?
-                              [:icon {:class "material-icons save"} "save"])
+                              [:icon {:class "material-icons md-18 save"} "save"])
                             [:div {:class "the-name"} the-name]
-                            [:icon {:class "material-icons close"} "close"]]
+                            [:icon {:class "material-icons md-18 close"} "close"]]
                            [:div {:class "confirm"}
                             [:label "Sure?"]
                             [:div {:class "btn yes"} "Yes"]
                             [:div {:class "btn no"} "No"]]])
                         (ulmus/zip
                           (:name-$ sources)
+                          (ulmus/map (fn [selected-id] (= selected-id (:id props))) (:selected-$ sources))
                           confirm?-$
                           (:dirty?-$ sources)))}))
 
@@ -70,29 +75,49 @@
 ; delete-workspace -> gensym
 ; save-workspace -> gensym
 
-(recurrent/defcomponent WorkspacePanel
+(recurrent/defcomponent WorkspaceList
   [props sources]
-  (let [labels-$ (ulmus/reduce (fn [acc [added removed]]
+  (let [selected-$ (ulmus/map
+                     (fn [e] (keyword (.getAttribute (.-currentTarget e) "data-id")))
+                     ((:recurrent/dom-$ sources) ".workspace-label" "click"))
+        labels-$ (ulmus/reduce (fn [acc [added removed]]
                                  (merge
                                    acc
                                    (into 
                                      {}
                                      (map (fn [[k v]]
                                             [k (WorkspaceLabel 
-                                                 {}
+                                                 {:id k}
                                                  {:name-$
                                                   (ulmus/map
                                                     #(get-in % [k :name]) (:workspaces-$ sources))
                                                   :dirty?-$
                                                   (ulmus/map
                                                     #(get-in % [k :dirty?]) (:workspaces-$ sources))
+                                                  :selected-$ selected-$
                                                   :recurrent/dom-$ (:recurrent/dom-$ sources)})]) added))))
                                {}
                                (ulmus/changed-keys (:workspaces-$ sources)))]
-    {:recurrent/dom-$
+    {:selected-$ (ulmus/map
+                   (fn [e] (keyword (.getAttribute (.-currentTarget e) "data-id")))
+                   ((:recurrent/dom-$ sources) ".workspace-label" "click"))
+     :recurrent/dom-$
      (ulmus/map (fn [labels-dom]
-                  `[:div {:class "workspace-panel"}
+                  `[:div {:class "workload-panel"}
                     ~@labels-dom])
                 (ulmus/pickzip :recurrent/dom-$ (ulmus/map vals labels-$)))}))
 
 
+
+(recurrent/defcomponent SidePanel
+  [props sources]
+  (let [open?-$ (ulmus/reduce not false ((:recurrent/dom-$ sources) ".open-arrow" "click"))]
+    {:recurrent/dom-$ (ulmus/map
+                        (fn [[open? dom]]
+                          `[:div {:class ~(str "side-panel " (if open? "open"))}
+                            [:icon {:class ~(str "material-icons open-arrow " (if open? "open"))} "arrow_back_ios"]
+                            [:div {:class "side-panel-content"}
+                              ~dom]])
+                        (ulmus/zip
+                          open?-$
+                          (:dom-$ sources)))}))

@@ -98,6 +98,43 @@ body * {
   background: #00a2ff;
 }
 
+.main {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.main .main-content {
+  display: flex;
+  flex: 1;
+}
+
+.main .main-content .workspaces {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.main .main-content .workspaces icon {
+  font-size: 18px;
+  margin-right: 8px;
+}
+
+.main .main-content .workspaces .add {
+  border-top: 1px solid #d9e1ff;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  padding: 16px 0 16px 29px;
+}
+
+.main .main-content .graffle {
+  box-shadow: 5px 0px 25px 0 rgba(46, 91, 255, 0.4);
+  flex: 1;
+  z-index: 2;
+}
+
 .title-bar {
   background: white;
   border-bottom: 1px solid #d9e1ff;
@@ -106,6 +143,7 @@ body * {
   height: 88px;
   padding: 32px;
   position: relative;
+  z-index: 3;
 }
 
 .title-bar .workspace {
@@ -156,37 +194,46 @@ body * {
 }
 
 .workspace-label {
+  cursor: pointer;
   overflow: hidden;
   position: relative;
 }
 
-.workspace-label .content {
-  line-height: 1.5em;
-  top: 0;
-  padding: 16px 32px;
-  position: relative;
-  z-index: 1;
-  font-weight: bold;
-  display: flex;
-  transition: top 500ms ease;
-  background: white;
+.workspace-label .workspace-label-content:hover .close {
+  display: block;
 }
 
-.workspace-label .content.confirming {
+.workspace-label .workspace-label-content {
+  line-height: 1.5em;
+  font-size: 14px;
+  transition: top 500ms ease;
+  top: 0;
+  background: white;
+  z-index: 1;
+  padding: 8px 32px;
+  display: flex;
+  position: relative;
+}
+
+.workspace-label .workspace-label-content.confirming {
   top: 56px;
 }
 
-.workspace-label .content icon {
-  cursor: pointer;
+.workspace-label .workspace-label-content.selected {
+  background: lightblue;
 }
 
-.workspace-label .content .the-name {
-  flex: 1;
-  margin-left: 8px;
-}
-
-.workspace-label .content:hover .more {
+.workspace-label .workspace-label-content .close {
   display: none;
+}
+
+.workspace-label .workspace-label-content icon {
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.workspace-label .workspace-label-content .the-name {
+  flex: 1;
 }
 
 .workspace-label .confirm {
@@ -198,6 +245,7 @@ body * {
   padding: 0 32px;
   position: absolute;
   font-weight: bold;
+  box-shadow: inset 0px 0px 25px rgba(46, 91, 255, 0.4);
   display: flex;
   background: red;
   color: white;
@@ -212,11 +260,58 @@ body * {
   border: 1px solid white;
   border-radius: 4px;
   cursor: pointer;
-  margin-left: 16px;
+  margin-left: 8px;
   text-align: center;
   width: 72px;
 }
 
-.workspace-panel {
+.workload-panel {
+  flex: 1;
+}
 
+.side-panel {
+  background: white;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  width: 32px;
+  transition: width 500ms ease;
+}
+
+.side-panel.open {
+  width: 256px;
+}
+
+.side-panel.open  > .side-panel-content {
+  opacity: 1;
+}
+
+.side-panel h4 {
+  letter-spacing: 1.8px;
+  margin: 32px 0 8px 32px;
+}
+
+.side-panel .side-panel-content {
+  height: 100%;
+  opacity: 0;
+  width: 256px;
+  transition: opacity 500ms ease;
+}
+
+.side-panel .open-arrow {
+  width: 32px;
+  top: 0;
+  transform-origin: 50% 50%;
+  text-align: center;
+  position: absolute;
+  margin-top: 8px;
+  z-index: 2;
+  cursor: pointer;
+  font-size: 14px;
+  transition: transform 500ms ease;
+  left: 0;
+}
+
+.side-panel .open-arrow.open {
+  transform: rotate(-180deg);
 }
