@@ -1,6 +1,6 @@
 (ns konstellate.components
   (:require 
-    recurrent.drivers.dom
+    recurrent.drivers.vdom
     [recurrent.core :as recurrent :include-macros true]
     [ulmus.signal :as ulmus]))
 
@@ -8,7 +8,7 @@
   [props sources]
   {:recurrent/dom-$
    (ulmus/signal-of [:div {:class "title-bar"}
-                     [:h1 "konstellate"]
+                     ;[:h1 "konstellate"]
                      [:icon {:class "material-icons more"} "more_vert"]])})
 
 (recurrent/defcomponent FloatingMenu
@@ -17,7 +17,6 @@
     {:recurrent/dom-$
      (ulmus/map
        (fn [open?]
-         (println open?)
          [:div {:class (str "floating-menu " (if open? "open"))}
           [:ol
            [:li "Foo"]
@@ -50,8 +49,7 @@
 
     {:recurrent/dom-$ (ulmus/map
                         (fn [[the-name selected? confirm? dirty?]]
-                          (println confirm?)
-                          [:div {:data-id (str (name (:id props)))
+                          [:div {:attributes {:data-id (str (name (:id props)))}
                                  :class "workspace-label"
                                  :draggable true}
                            [:div {:class (str "workspace-label-content "
@@ -62,8 +60,9 @@
                             [:div {:class "the-name"} the-name]
                             [:icon {:class "material-icons md-18 close"} "close"]]
                            [:div {:class "confirm"}
-                            [:label "Sure?"]
-                            [:div {:class "btn yes"} "Yes"]
+                            [:label {} "Sure?"]
+                            [:div {:attributes {:data-id (str (name (:id props)))}
+                                   :class "btn yes"} "Yes"]
                             [:div {:class "btn no"} "No"]]])
                         (ulmus/zip
                           (:name-$ sources)
@@ -81,8 +80,10 @@
                      (fn [e] (keyword (.getAttribute (.-currentTarget e) "data-id")))
                      ((:recurrent/dom-$ sources) ".workspace-label" "click"))
         labels-$ (ulmus/reduce (fn [acc [added removed]]
+                                 (as-> acc a
+                                   (apply dissoc a (keys removed))
                                  (merge
-                                   acc
+                                   a
                                    (into 
                                      {}
                                      (map (fn [[k v]]
@@ -95,11 +96,15 @@
                                                   (ulmus/map
                                                     #(get-in % [k :dirty?]) (:workspaces-$ sources))
                                                   :selected-$ selected-$
-                                                  :recurrent/dom-$ (:recurrent/dom-$ sources)})]) added))))
+                                                  :recurrent/dom-$ (:recurrent/dom-$ sources)})]) added)))))
                                {}
-                               (ulmus/changed-keys (:workspaces-$ sources)))]
-    {:selected-$ (ulmus/map
-                   (fn [e] (keyword (.getAttribute (.-currentTarget e) "data-id")))
+                               (ulmus/changed-keys (:workspaces-$ sources)))
+        kw-id (fn [e]
+                (.stopPropagation e)
+                (keyword (.getAttribute (.-currentTarget e) "data-id")))]
+    {:delete-$ (ulmus/map kw-id ((:recurrent/dom-$ sources) ".workspace-label .yes" "click"))
+     :selected-$ (ulmus/map
+                   kw-id
                    ((:recurrent/dom-$ sources) ".workspace-label" "click"))
      :recurrent/dom-$
      (ulmus/map (fn [labels-dom]

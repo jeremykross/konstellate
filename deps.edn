@@ -4,9 +4,11 @@
         garden {:mvn/version "1.3.6"}
         konstellate/components {:git/url "https://github.com/konstellate/components"
                                 :sha "c45cc14f1e2f454608c65007f45a0c8387114f48"}
-        recurrent {:git/url "https://github.com/jeremykross/recurrent.git"
-                   :sha "8cb9d28d6ac2f891463f6e2e6cf847bab4d50b80"}
-        ulmus {:git/url "https://github.com/jeremykross/ulmus.git"
-               :sha "3d2c7afa3d7406dcaadcff2f98ddb8bb34aedd43"}}
+        recurrent {:local/root "/home/jkross/Projects/recurrent"}
+                   ;:git/url "https://github.com/jeremykross/recurrent.git"
+                   ;:sha "8cb9d28d6ac2f891463f6e2e6cf847bab4d50b80"}
+        ulmus {:local/root "/home/jkross/Projects/ulmus"}}
+               ;:git/url "https://github.com/jeremykross/ulmus.git"
+               ;:sha "3d2c7afa3d7406dcaadcff2f98ddb8bb34aedd43"}}
  :paths ["src" "target" "resources"]}
 

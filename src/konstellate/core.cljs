@@ -1,7 +1,7 @@
 (ns konstellate.core
   (:require
     recurrent.core
-    recurrent.drivers.dom
+    recurrent.drivers.vdom
     recurrent.state
     [konstellate.components :as components]
     [ulmus.signal :as ulmus]))
@@ -9,9 +9,9 @@
 (def initial-state
   {:workspaces
    {:gensym {:canonical {:name "Foo"
-                         :yaml {:gensym {}}}
+                         :yaml {:gensym-a {}}}
              :edited {:name "Foo"
-                      :yaml  {:gensym {:foo "bar"}}}}
+                      :yaml  {:gensym-b {:foo "bar"}}}}
     :gensym1 {:edited {:name "Bar"}}}})
 
 (defn Main
@@ -30,24 +30,34 @@
                                                                        (get-in workspace [:edited :yaml]))}])
                                                   (:workspaces state))))
                                          (:recurrent/state-$ sources))})
+
         side-panel (components/SidePanel
                      {}
                      {:dom-$ 
                       (ulmus/map (fn [workload-list-dom]
                                    [:div {:class "workspaces"}
-                                    [:h4 "Workspaces"]
+                                    [:h4 {} "Workspaces"]
                                     workload-list-dom
                                     [:div {:class "add-workspace"}
                                      [:icon {:class "material-icons"}
                                       "add"] 
-                                     [:div "Add Workspace"]]])
+                                     [:div {} "Add Workspace"]]])
                       (:recurrent/dom-$ workload-list))
                       :recurrent/dom-$ (:recurrent/dom-$ sources)})]
+
+    (ulmus/subscribe! (:delete-$ workload-list) println)
+
     {:recurrent/state-$ (ulmus/merge
                           (ulmus/signal-of (fn [] initial-state))
+                          (ulmus/map (fn [id]
+                                       (js/console.log (str "HERE" id))
+                                       (fn [state]
+                                         (update-in state [:workspaces]
+                                                    (fn [workloads]
+                                                      (dissoc workloads id)))))
+                                     (:delete-$ workload-list))
                           (ulmus/map (fn [] 
                                        (fn [state]
-                                         (println "Update:" state)
                                          (assoc-in
                                            state
                                            [:workspaces
@@ -72,4 +82,4 @@
   (recurrent.core/start!
     (recurrent.state/with-state Main)
     {}
-    {:recurrent/dom-$ (recurrent.drivers.dom/for-id! "app")}))
+    {:recurrent/dom-$ (recurrent.drivers.vdom/for-id! "app")}))
