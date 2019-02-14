@@ -37,13 +37,25 @@
                                    [:div {:class "workspaces"}
                                     [:h4 "Workspaces"]
                                     workload-list-dom
-                                    [:div {:class "add"}
+                                    [:div {:class "add-workspace"}
                                      [:icon {:class "material-icons"}
                                       "add"] 
                                      [:div "Add Workspace"]]])
                       (:recurrent/dom-$ workload-list))
                       :recurrent/dom-$ (:recurrent/dom-$ sources)})]
-    {:recurrent/state-$ (ulmus/signal-of (fn [] initial-state))
+    {:recurrent/state-$ (ulmus/merge
+                          (ulmus/signal-of (fn [] initial-state))
+                          (ulmus/map (fn [] 
+                                       (fn [state]
+                                         (println "Update:" state)
+                                         (assoc-in
+                                           state
+                                           [:workspaces
+                                            (keyword (gensym))]
+                                           {:edited {:name "New Workspace"}})))
+                                     ((:recurrent/dom-$ sources)
+                                      ".add-workspace"
+                                      "click")))
      :recurrent/dom-$
       (ulmus/map
         (fn [[title-bar-dom side-panel-dom]]

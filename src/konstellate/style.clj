@@ -53,11 +53,12 @@
                            :height "100%"}
              [:icon {:font-size "18px"
                      :margin-right "8px"}]
-             [:.add {:border-top (str "1px solid " border)
-                     :display "flex"
-                     :align-items "center"
-                     :font-size "14px"
-                     :padding "16px 0 16px 29px"}]]
+             [:.add-workspace {:border-top (str "1px solid " border)
+                               :cursor "pointer"
+                               :display "flex"
+                               :align-items "center"
+                               :font-size "14px"
+                               :padding "16px 0 16px 29px"}]]
             [:.graffle {:box-shadow left-shadow
                         :flex 1
                         :z-index 2}]]])

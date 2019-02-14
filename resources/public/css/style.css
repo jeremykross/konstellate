@@ -121,8 +121,9 @@ body * {
   margin-right: 8px;
 }
 
-.main .main-content .workspaces .add {
+.main .main-content .workspaces .add-workspace {
   border-top: 1px solid #d9e1ff;
+  cursor: pointer;
   display: flex;
   align-items: center;
   font-size: 14px;
@@ -205,14 +206,14 @@ body * {
 
 .workspace-label .workspace-label-content {
   line-height: 1.5em;
-  font-size: 14px;
-  transition: top 500ms ease;
   top: 0;
-  background: white;
-  z-index: 1;
   padding: 8px 32px;
-  display: flex;
   position: relative;
+  z-index: 1;
+  font-size: 14px;
+  display: flex;
+  transition: top 500ms ease;
+  background: white;
 }
 
 .workspace-label .workspace-label-content.confirming {
