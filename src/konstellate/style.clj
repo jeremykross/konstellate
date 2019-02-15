@@ -92,12 +92,10 @@
                     :position "absolute"
                     :min-width "128px"
                     :perspective "100px"
-                    :transform "scaleY(0)"
                     :transform-origin "50% 0"
                     :transition "transform 300ms ease, opacity 300ms ease"
                     :z-index 5}
-   [:&.open {:opacity 1
-             :transform "scaleY(1)"}]
+   [:&.open {:opacity 1}]
    [:ol {:list-style-type "none"}
     [:li {:cursor "pointer"
           :padding "16px 0"
@@ -115,7 +113,7 @@
     [(garden.selectors/> "" :.side-panel-content) {:opacity 1}]]
 
    [:h4 {:letter-spacing "1.8px"
-         :margin "32px 0 8px 32px"}]
+         :margin "16px 0 8px 40px"}]
    [:.side-panel-content {:height "100%"
                           :opacity 0
                           :width "256px"
@@ -124,9 +122,8 @@
                   :position "absolute"
                   :font-size "14px"
                   :left 0
-                  :margin-top "8px"
                   :text-align "center"
-                  :top 0
+                  :top "18px"
                   :transform-origin "50% 50%"
                   :transition "transform 500ms ease"
                   :width "32px"
@@ -141,7 +138,7 @@
    [".workspace-label-content:hover .close" {:display "block"}]
    [:.workspace-label-content {:background "white"
                                :font-size "14px"
-                               :padding "8px 32px"
+                               :padding "4px 40px"
                                :position "relative"
                                :top "0"
                                :line-height "1.5em"

@@ -85,7 +85,6 @@ body * {
   transform-origin: 50% 0;
   border: 1px solid #d9e1ff;
   padding: 8px 0;
-  transform: scaleY(0);
   position: absolute;
   z-index: 5;
   font-size: 14px;
@@ -98,7 +97,6 @@ body * {
 
 .floating-menu.open {
   opacity: 1;
-  transform: scaleY(1);
 }
 
 .floating-menu ol {
@@ -224,7 +222,7 @@ body * {
 .workspace-label .workspace-label-content {
   background: white;
   font-size: 14px;
-  padding: 8px 32px;
+  padding: 4px 40px;
   position: relative;
   top: 0;
   line-height: 1.5em;
@@ -310,7 +308,7 @@ body * {
 
 .side-panel h4 {
   letter-spacing: 1.8px;
-  margin: 32px 0 8px 32px;
+  margin: 16px 0 8px 40px;
 }
 
 .side-panel .side-panel-content {
@@ -322,11 +320,10 @@ body * {
 
 .side-panel .open-arrow {
   width: 32px;
-  top: 0;
+  top: 18px;
   transform-origin: 50% 50%;
   text-align: center;
   position: absolute;
-  margin-top: 8px;
   z-index: 2;
   cursor: pointer;
   font-size: 14px;
