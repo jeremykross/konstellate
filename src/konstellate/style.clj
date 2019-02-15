@@ -86,22 +86,21 @@
   [:.floating-menu {:background "white"
                     :border (str "1px solid " border)
                     :border-radius "4px"
-                    :box-shadow shadow
+                    :font-size "14px"
                     :opacity 0
                     :padding "8px 0"
                     :position "absolute"
-                    :margin "32px"
-                    :min-width "256px"
+                    :min-width "128px"
                     :perspective "100px"
-                    :transform "rotateX(32deg)"
+                    :transform "scaleY(0)"
                     :transform-origin "50% 0"
-                    :transition "transform 300ms ease, opacity 300ms ease"}
+                    :transition "transform 300ms ease, opacity 300ms ease"
+                    :z-index 5}
    [:&.open {:opacity 1
-             :transform "rotateX(0deg)"}]
+             :transform "scaleY(1)"}]
    [:ol {:list-style-type "none"}
     [:li {:cursor "pointer"
-          :font-weight "bold"
-          :padding "16px"
+          :padding "16px 0"
           :text-align "center"}
      [:&:hover {:background highlight}]]]])
 
@@ -141,7 +140,6 @@
                       :position "relative"}
    [".workspace-label-content:hover .close" {:display "block"}]
    [:.workspace-label-content {:background "white"
-                               :display "flex"
                                :font-size "14px"
                                :padding "8px 32px"
                                :position "relative"
@@ -149,6 +147,8 @@
                                :line-height "1.5em"
                                :transition "top 500ms ease"
                                :z-index 1}
+    [:.label-standard-content {:display "flex"
+                               :padding "8px 0"}]
     [:&.confirming {:top "56px"}]
     [:&.selected {:background "lightblue"}]
     [:.close {:display "none"}]
@@ -180,6 +180,7 @@
 
 (def styles
   [components/Button
+   components/TextInput
    FloatingMenu
    Main
    TitleBar

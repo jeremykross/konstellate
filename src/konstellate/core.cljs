@@ -6,18 +6,29 @@
     [konstellate.components :as components]
     [ulmus.signal :as ulmus]))
 
-(def initial-state
-  {:workspaces
+(comment def initial-state
+  {:preferences {}
+   :workspaces
    {:gensym {:canonical {:name "Foo"
                          :yaml {:gensym-a {}}}
              :edited {:name "Foo"
                       :yaml  {:gensym-b {:foo "bar"}}}}
     :gensym1 {:edited {:name "Bar"}}}})
 
+(def initial-state {:workspaces {}})
+
 (defn Main
   [props sources]
   (let [title-bar (components/TitleBar {}
                                        {:recurrent/dom-$ (:recurrent/dom-$ sources)})
+        menu (components/FloatingMenu
+               {}
+               (merge
+                 (select-keys sources [:recurrent/dom-$])
+                 {:pos-$ (ulmus/signal-of {:top "68px" :right "32px"})
+                  :open?-$ (ulmus/reduce not false ((:recurrent/dom-$ sources) ".more" "click"))
+                  :items-$ (ulmus/signal-of ["New" "Open" "Save" "Export"])}))
+
         workload-list (components/WorkspaceList
                         {} 
                         {:recurrent/dom-$ (:recurrent/dom-$ sources)
@@ -45,10 +56,17 @@
                       (:recurrent/dom-$ workload-list))
                       :recurrent/dom-$ (:recurrent/dom-$ sources)})]
 
-    (ulmus/subscribe! (:delete-$ workload-list) println)
-
     {:recurrent/state-$ (ulmus/merge
                           (ulmus/signal-of (fn [] initial-state))
+                          (ulmus/map (fn [name-change]
+                                       (fn [state]
+                                         (assoc-in state
+                                                   [:workspaces
+                                                    (:id name-change)
+                                                    :edited
+                                                    :name]
+                                                   (:new-value name-change))))
+                                     (:rename-$ workload-list))
                           (ulmus/map (fn [id]
                                        (js/console.log (str "HERE" id))
                                        (fn [state]
@@ -68,14 +86,17 @@
                                       "click")))
      :recurrent/dom-$
       (ulmus/map
-        (fn [[title-bar-dom side-panel-dom]]
+        (fn [[title-bar-dom side-panel-dom menu-dom]]
           [:div {:class "main"}
            title-bar-dom
+           menu-dom
            [:div {:class "main-content"}
             side-panel-dom
             [:div {:class "graffle"}]]])
-        (ulmus/zip (:recurrent/dom-$ title-bar)
-                   (:recurrent/dom-$ side-panel)))}))
+        (ulmus/distinct
+          (ulmus/zip (:recurrent/dom-$ title-bar)
+                     (:recurrent/dom-$ side-panel)
+                     (:recurrent/dom-$ menu))))}))
 
 (defn start!
   []

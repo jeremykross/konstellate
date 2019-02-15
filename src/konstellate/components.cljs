@@ -2,6 +2,7 @@
   (:require 
     recurrent.drivers.vdom
     [recurrent.core :as recurrent :include-macros true]
+    [ulmus.keyboard :as keyboard]
     [ulmus.signal :as ulmus]))
 
 (recurrent/defcomponent TitleBar
@@ -16,20 +17,30 @@
   (let [selection-$ ((:recurrent/dom-$ sources) "li" "click")]
     {:recurrent/dom-$
      (ulmus/map
-       (fn [open?]
-         [:div {:class (str "floating-menu " (if open? "open"))}
-          [:ol
-           [:li "Foo"]
-           [:li "Bar"]]])
-       (ulmus/start-with! true
-         (ulmus/merge
-           (ulmus/map (constantly true) (:open-$ sources))
-           (ulmus/map (constantly false) (:close-$ sources))
-           (ulmus/map (constantly false) selection-$))))}))
+       (fn [[items pos open?]]
+         `[:div {:class ~(str "floating-menu " (if open? "open"))
+                 :style ~pos}
+           [:ol {}
+            ~@(map (fn [item] [:li {} item]) items)]])
+       (ulmus/zip
+         (:items-$ sources)
+         (:pos-$ sources)
+         (:open?-$ sources)))}))
 
 (recurrent/defcomponent WorkspaceLabel
   [props sources]
-  (let [confirm?-$ 
+  (let [value-$ (ulmus/map  
+                  #(.-value (.-target %))
+                  ((:recurrent/dom-$ sources) "input" "keyup"))
+        editing?-$ 
+        (ulmus/start-with! true
+          (ulmus/merge
+                       (ulmus/map (constantly true)
+                                  ((:recurrent/dom-$ sources) ".label-standard-content" "dblclick"))
+                       (ulmus/map (constantly false)
+                                  (keyboard/press 13))))
+
+        confirm?-$ 
         (ulmus/merge
           (ulmus/map (constantly true)
                      ((:recurrent/dom-$ sources) ".close" "click"))
@@ -47,18 +58,27 @@
     ; save-$
     ; remove-$
 
-    {:recurrent/dom-$ (ulmus/map
-                        (fn [[the-name selected? confirm? dirty?]]
+    {:rename-$ 
+     (ulmus/map (fn [new-value] {:id (:id props)
+                                 :new-value new-value})
+                (ulmus/sample-on value-$ (ulmus/filter not editing?-$)))
+     :recurrent/dom-$ (ulmus/map
+                        (fn [[the-name selected? editing? confirm? dirty?]]
+                          (println selected? editing? confirm? dirty?)
                           [:div {:attributes {:data-id (str (name (:id props)))}
                                  :class "workspace-label"
-                                 :draggable true}
+                                 :draggable (not editing?)}
                            [:div {:class (str "workspace-label-content "
                                               (if confirm? "confirming ")
                                               (if selected? "selected"))}
-                            (if dirty?
-                              [:icon {:class "material-icons md-18 save"} "save"])
-                            [:div {:class "the-name"} the-name]
-                            [:icon {:class "material-icons md-18 close"} "close"]]
+                            (if (not editing?)
+                              [:div {:class "label-standard-content"}
+                               (if dirty?
+                                 [:icon {:class "material-icons md-18 save"} "save"])
+                               [:div {:class "the-name"} the-name]
+                               [:icon {:class "material-icons md-18 close"} "close"]]
+                              [:div {:class "label-edit-content text-input"}
+                               [:input {:autofocus true :type "text"}]])]
                            [:div {:class "confirm"}
                             [:label {} "Sure?"]
                             [:div {:attributes {:data-id (str (name (:id props)))}
@@ -67,6 +87,7 @@
                         (ulmus/zip
                           (:name-$ sources)
                           (ulmus/map (fn [selected-id] (= selected-id (:id props))) (:selected-$ sources))
+                          editing?-$
                           confirm?-$
                           (:dirty?-$ sources)))}))
 
@@ -106,6 +127,7 @@
      :selected-$ (ulmus/map
                    kw-id
                    ((:recurrent/dom-$ sources) ".workspace-label" "click"))
+     :rename-$ (ulmus/pickmerge :rename-$ (ulmus/map vals labels-$))
      :recurrent/dom-$
      (ulmus/map (fn [labels-dom]
                   `[:div {:class "workload-panel"}

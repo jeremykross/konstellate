@@ -62,15 +62,33 @@ body * {
   color: #212b35;
 }
 
+.text-input label {
+  display: block;
+  font-size: 12px;
+  font-weight: normal;
+  margin-bottom: 4px;
+  opacity: 0.5;
+}
+
+.text-input input {
+  border: 1px solid lightgrey;
+  border-radius: 4px;
+  font-size: 16px;
+  height: 40px;
+  outline: none;
+  padding: 0 16px;
+  width: 100%;
+}
+
 .floating-menu {
-  min-width: 256px;
-  margin: 32px;
+  min-width: 128px;
   transform-origin: 50% 0;
   border: 1px solid #d9e1ff;
   padding: 8px 0;
-  transform: rotateX(32deg);
+  transform: scaleY(0);
   position: absolute;
-  box-shadow: 0 5px 25px 0 rgba(46, 91, 255, 0.4);
+  z-index: 5;
+  font-size: 14px;
   border-radius: 4px;
   perspective: 100px;
   transition: transform 300ms ease, opacity 300ms ease;
@@ -80,7 +98,7 @@ body * {
 
 .floating-menu.open {
   opacity: 1;
-  transform: rotateX(0deg);
+  transform: scaleY(1);
 }
 
 .floating-menu ol {
@@ -89,8 +107,7 @@ body * {
 
 .floating-menu ol li {
   cursor: pointer;
-  font-weight: bold;
-  padding: 16px;
+  padding: 16px 0;
   text-align: center;
 }
 
@@ -205,15 +222,19 @@ body * {
 }
 
 .workspace-label .workspace-label-content {
-  line-height: 1.5em;
-  top: 0;
+  background: white;
+  font-size: 14px;
   padding: 8px 32px;
   position: relative;
-  z-index: 1;
-  font-size: 14px;
-  display: flex;
+  top: 0;
+  line-height: 1.5em;
   transition: top 500ms ease;
-  background: white;
+  z-index: 1;
+}
+
+.workspace-label .workspace-label-content .label-standard-content {
+  display: flex;
+  padding: 8px 0;
 }
 
 .workspace-label .workspace-label-content.confirming {
