@@ -45,6 +45,7 @@
 
 (def Main [:.main {:display "flex"
                    :flex-direction "column"
+                   :position "relative"
                    :width "100%"
                    :height "100%"}
            [:.main-content {:display "flex"
@@ -65,8 +66,10 @@
                         :z-index 2}]]])
 
 
-(def ActionButton
-  [:.action-button])
+(def AddResource
+  [:.add-resource {:bottom "48px !important"
+                   :right "48px !important"
+                   :z-index 5}])
 
 (def TitleBar
   [:.title-bar {:background "white"
@@ -181,11 +184,12 @@
 (def WorkspaceList [:.workload-panel {:flex 1}])
 
 (def styles
-  [components/Button
+  [components/ActionButton
+   components/Button
    components/TextInput
    graffle/Main
    graffle/Node
-   ActionButton
+   AddResource
    FloatingMenu
    Main
    TitleBar

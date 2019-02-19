@@ -62,6 +62,11 @@
 
         selected-graffle-$ (ulmus/map #(apply get %) (ulmus/zip workspace-graffle-$ (:selected-$ workspace-list)))
 
+        kind-picker (editor/KindPicker {} 
+                                       (select-keys sources
+                                                    [:recurrent/dom-$
+                                                     :swagger-$]))
+
         ;key-picker (editor/KeyPicker)
         ;editor-$ (ulmus/map #(editor/Editor) (:selected-$ key-picker))
         ;editor-dom-$ (ulmus/choose <> (:recurrent/dom-$ key-picker) (ulmus/pickmap :recurrent/dom-$ editor-$))
@@ -80,7 +85,8 @@
                       (:recurrent/dom-$ workspace-list))
                       :recurrent/dom-$ (:recurrent/dom-$ sources)})]
 
-    {:recurrent/state-$ (ulmus/merge
+    {:swagger-$ (ulmus/signal-of [:get])
+     :recurrent/state-$ (ulmus/merge
                           (ulmus/signal-of (fn [] initial-state))
                           (ulmus/map (fn [name-change]
                                        (fn [state]
@@ -104,31 +110,40 @@
                                            [:workspaces
                                             (keyword (gensym))]
                                            {:edited {:name "New Workspace"
-                                                     :yaml {}}})))
+                                                     :yaml {:foo {}}}})))
                                      ((:recurrent/dom-$ sources)
                                       ".add-workspace"
                                       "click")))
      :recurrent/dom-$
-      (ulmus/map
-        (fn [[title-bar-dom side-panel-dom menu-dom graffle]]
-          (println graffle)
-          [:div {:class "main"}
-           title-bar-dom
-           menu-dom
-           [:div {:class "main-content"}
-            side-panel-dom
-            [:div {:class "graffle"} graffle]]])
-        (ulmus/distinct
-          (ulmus/zip (:recurrent/dom-$ title-bar)
-                     (:recurrent/dom-$ side-panel)
-                     (:recurrent/dom-$ menu)
-                     (ulmus/pickmap :recurrent/dom-$ selected-graffle-$))))}))
+     (ulmus/choose
+       (ulmus/start-with!
+         :workspace
+         (ulmus/map (constantly :kind-picker) ((:recurrent/dom-$ sources) ".add-resource" "click")))
+       {:workspace
+        (ulmus/map
+          (fn [[title-bar-dom side-panel-dom menu-dom graffle]]
+            (println graffle)
+            [:div {:class "main"}
+             [:div {:class "action-button add-resource"} "+"]
+             title-bar-dom
+             menu-dom
+             [:div {:class "main-content"}
+              side-panel-dom
+              [:div {:class "graffle"} graffle]]])
+          (ulmus/distinct
+            (ulmus/zip (:recurrent/dom-$ title-bar)
+                       (:recurrent/dom-$ side-panel)
+                       (:recurrent/dom-$ menu)
+                       (ulmus/pickmap :recurrent/dom-$ selected-graffle-$))))
+        :kind-picker (:recurrent/dom-$ kind-picker)})}))
 
 (defn start!
   []
-  (recurrent.core/start!
-    (state/with-state Main)
-    {}
-    {:recurrent/dom-$ (recurrent.drivers.vdom/for-id! "app")}))
+  (let [swagger-path "https://raw.githubusercontent.com/kubernetes/kubernetes/master/api/openapi-spec/swagger.json"] 
+    (recurrent.core/start!
+      (state/with-state Main)
+      {}
+      {:swagger-$                                                                      (recurrent.drivers.http/create!                                                   swagger-path {:with-credentials? false}) 
+       :recurrent/dom-$ (recurrent.drivers.vdom/for-id! "app")})))
 
 (set! (.-onerror js/window) #(println %))
