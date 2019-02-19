@@ -3,6 +3,7 @@
     garden.selectors
     [garden.core :as garden]
     [garden.def :refer [defkeyframes]]
+    [konstellate.editor.style :as editor]
     [konstellate.graffle.style :as graffle]
     [konstellate.components.style :as components]))
 
@@ -200,5 +201,5 @@
 
 (defn spit-styles!
   []
-  (spit "resources/public/css/style.css" (garden/css (concat [Reset] styles))))
+  (spit "resources/public/css/style.css" (garden/css (concat [Reset] styles editor/styles))))
 
