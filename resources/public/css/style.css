@@ -80,6 +80,57 @@ body * {
   width: 100%;
 }
 
+.graffle-main {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
+.graffle-main .nodes {
+  position: relative;
+  height: 100%;
+  flex: 1;
+}
+
+.graffle-main svg {
+  height: 100%;
+  width: 100%;
+}
+
+.node {
+  top: -1px;
+  justify-content: center;
+  transform-origin: 50% 50%;
+  user-select: none;
+  border: 1px solid transparent;
+  align-items: center;
+  position: absolute;
+  border-radius: 50%;
+  display: flex;
+  transition: padding 250ms ease, border 250ms ease;
+  left: -1px;
+}
+
+.node:hover {
+  border: 1px solid #d9e1ff;
+  padding: 32px;
+}
+
+.node .outline {
+  background: white;
+  border-radius: 50%;
+  box-shadow: 2px 2px 4px rgba(0,0,0, 0.25);
+  border: 1px solid transparent;
+  height: 80px;
+  width: 80px;
+}
+
+.node .outline.selected {
+  border: 1px solid #00a2ff;
+}
+
 .floating-menu {
   min-width: 128px;
   transform-origin: 50% 0;

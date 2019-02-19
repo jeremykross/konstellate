@@ -3,6 +3,7 @@
     garden.selectors
     [garden.core :as garden]
     [garden.def :refer [defkeyframes]]
+    [konstellate.graffle.style :as graffle]
     [konstellate.components.style :as components]))
 
 (def shadow-color "rgba(46, 91, 255, 0.4)")
@@ -62,6 +63,10 @@
             [:.graffle {:box-shadow left-shadow
                         :flex 1
                         :z-index 2}]]])
+
+
+(def ActionButton
+  [:.action-button])
 
 (def TitleBar
   [:.title-bar {:background "white"
@@ -178,6 +183,9 @@
 (def styles
   [components/Button
    components/TextInput
+   graffle/Main
+   graffle/Node
+   ActionButton
    FloatingMenu
    Main
    TitleBar

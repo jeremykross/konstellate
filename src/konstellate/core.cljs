@@ -2,8 +2,10 @@
   (:require
     recurrent.core
     recurrent.drivers.vdom
-    recurrent.state
     [konstellate.components :as components]
+    [konstellate.editor.core :as editor]
+    [konstellate.graffle.core :as graffle]
+    [recurrent.state :as state]
     [ulmus.signal :as ulmus]))
 
 (comment def initial-state
@@ -29,31 +31,53 @@
                   :open?-$ (ulmus/reduce not false ((:recurrent/dom-$ sources) ".more" "click"))
                   :items-$ (ulmus/signal-of ["New" "Open" "Save" "Export"])}))
 
-        workload-list (components/WorkspaceList
+        workspaces-$
+        (ulmus/map 
+          (fn [state]
+            (into {}
+                  (map (fn [[id workspace]]
+                         [id {:name (get-in workspace [:edited :name])
+                              :dirty? (not= (get-in workspace [:canonical :yaml])
+                                            (get-in workspace [:edited :yaml]))}])
+                       (:workspaces state))))
+          (:recurrent/state-$ sources))
+
+
+        workspace-graffle-$ (ulmus/reduce (fn [acc [gained lost]]
+                                            (merge acc
+                                                   (into 
+                                                     {}
+                                                     (map (fn [k] [k ((state/isolate graffle/Graffle
+                                                                                      [:workspaces k :edited :yaml])
+                                                                       {} (select-keys sources [:recurrent/dom-$ :recurrent/state-$]))]) gained))))
+                                          {}
+                                          (ulmus/distinct
+                                            (ulmus/map #(map keys %)
+                                                       (ulmus/changed-keys workspaces-$))))
+
+        workspace-list (components/WorkspaceList
                         {} 
                         {:recurrent/dom-$ (:recurrent/dom-$ sources)
-                         :workspaces-$ (ulmus/map 
-                                         (fn [state]
-                                           (into {}
-                                             (map (fn [[id workspace]]
-                                                    [id {:name (get-in workspace [:edited :name])
-                                                         :dirty? (not= (get-in workspace [:canonical :yaml])
-                                                                       (get-in workspace [:edited :yaml]))}])
-                                                  (:workspaces state))))
-                                         (:recurrent/state-$ sources))})
+                         :workspaces-$ workspaces-$})
+
+        selected-graffle-$ (ulmus/map #(apply get %) (ulmus/zip workspace-graffle-$ (:selected-$ workspace-list)))
+
+        ;key-picker (editor/KeyPicker)
+        ;editor-$ (ulmus/map #(editor/Editor) (:selected-$ key-picker))
+        ;editor-dom-$ (ulmus/choose <> (:recurrent/dom-$ key-picker) (ulmus/pickmap :recurrent/dom-$ editor-$))
 
         side-panel (components/SidePanel
                      {}
                      {:dom-$ 
-                      (ulmus/map (fn [workload-list-dom]
+                      (ulmus/map (fn [workspace-list-dom]
                                    [:div {:class "workspaces"}
                                     [:h4 {} "Workspaces"]
-                                    workload-list-dom
+                                    workspace-list-dom
                                     [:div {:class "add-workspace"}
                                      [:icon {:class "material-icons"}
                                       "add"] 
                                      [:div {} "Add Workspace"]]])
-                      (:recurrent/dom-$ workload-list))
+                      (:recurrent/dom-$ workspace-list))
                       :recurrent/dom-$ (:recurrent/dom-$ sources)})]
 
     {:recurrent/state-$ (ulmus/merge
@@ -66,41 +90,45 @@
                                                     :edited
                                                     :name]
                                                    (:new-value name-change))))
-                                     (:rename-$ workload-list))
+                                     (:rename-$ workspace-list))
                           (ulmus/map (fn [id]
-                                       (js/console.log (str "HERE" id))
                                        (fn [state]
                                          (update-in state [:workspaces]
                                                     (fn [workloads]
                                                       (dissoc workloads id)))))
-                                     (:delete-$ workload-list))
+                                     (:delete-$ workspace-list))
                           (ulmus/map (fn [] 
                                        (fn [state]
                                          (assoc-in
                                            state
                                            [:workspaces
                                             (keyword (gensym))]
-                                           {:edited {:name "New Workspace"}})))
+                                           {:edited {:name "New Workspace"
+                                                     :yaml {}}})))
                                      ((:recurrent/dom-$ sources)
                                       ".add-workspace"
                                       "click")))
      :recurrent/dom-$
       (ulmus/map
-        (fn [[title-bar-dom side-panel-dom menu-dom]]
+        (fn [[title-bar-dom side-panel-dom menu-dom graffle]]
+          (println graffle)
           [:div {:class "main"}
            title-bar-dom
            menu-dom
            [:div {:class "main-content"}
             side-panel-dom
-            [:div {:class "graffle"}]]])
+            [:div {:class "graffle"} graffle]]])
         (ulmus/distinct
           (ulmus/zip (:recurrent/dom-$ title-bar)
                      (:recurrent/dom-$ side-panel)
-                     (:recurrent/dom-$ menu))))}))
+                     (:recurrent/dom-$ menu)
+                     (ulmus/pickmap :recurrent/dom-$ selected-graffle-$))))}))
 
 (defn start!
   []
   (recurrent.core/start!
-    (recurrent.state/with-state Main)
+    (state/with-state Main)
     {}
     {:recurrent/dom-$ (recurrent.drivers.vdom/for-id! "app")}))
+
+(set! (.-onerror js/window) #(println %))

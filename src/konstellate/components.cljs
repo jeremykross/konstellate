@@ -9,7 +9,7 @@
   [props sources]
   {:recurrent/dom-$
    (ulmus/signal-of [:div {:class "title-bar"}
-                     ;[:h1 "konstellate"]
+                     [:h1 {} "konstellate"]
                      [:icon {:class "material-icons more"} "more_vert"]])})
 
 (recurrent/defcomponent FloatingMenu
@@ -64,7 +64,6 @@
                 (ulmus/sample-on value-$ (ulmus/filter not editing?-$)))
      :recurrent/dom-$ (ulmus/map
                         (fn [[the-name selected? editing? confirm? dirty?]]
-                          (println selected? editing? confirm? dirty?)
                           [:div {:attributes {:data-id (str (name (:id props)))}
                                  :class "workspace-label"
                                  :draggable (not editing?)}
