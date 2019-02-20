@@ -21,7 +21,13 @@
 
 (defn Main
   [props sources]
-  (let [title-bar (components/TitleBar {}
+  (let [definitions-$ (ulmus/map (fn [swagger-text]
+                                   (:definitions (js->clj
+                                                   (.parse js/JSON swagger-text)
+                                                   :keywordize-keys true)))
+                                 ((:swagger-$ sources) [:get]))
+
+        title-bar (components/TitleBar {}
                                        {:recurrent/dom-$ (:recurrent/dom-$ sources)})
         menu (components/FloatingMenu
                {}
@@ -55,39 +61,68 @@
                                             (ulmus/map #(map keys %)
                                                        (ulmus/changed-keys workspaces-$))))
 
-        workspace-list (components/WorkspaceList
-                        {} 
-                        {:recurrent/dom-$ (:recurrent/dom-$ sources)
-                         :workspaces-$ workspaces-$})
+        workspace-list
+        (components/WorkspaceList
+          {} 
+          {:recurrent/dom-$ (:recurrent/dom-$ sources)
+           :workspaces-$ workspaces-$})
 
-        selected-graffle-$ (ulmus/map #(apply get %) (ulmus/zip workspace-graffle-$ (:selected-$ workspace-list)))
+        selected-graffle-$
+        (ulmus/map
+          #(apply get %) (ulmus/zip workspace-graffle-$ (:selected-$ workspace-list)))
 
-        kind-picker (editor/KindPicker {} 
-                                       (select-keys sources
-                                                    [:recurrent/dom-$
-                                                     :swagger-$]))
+        kind-picker
+        (editor/KindPicker
+          {} 
+          (assoc
+            (select-keys sources
+                         [:recurrent/dom-$
+                          :swagger-$])
+            :definitions-$ definitions-$))
 
-        ;key-picker (editor/KeyPicker)
-        ;editor-$ (ulmus/map #(editor/Editor) (:selected-$ key-picker))
-        ;editor-dom-$ (ulmus/choose <> (:recurrent/dom-$ key-picker) (ulmus/pickmap :recurrent/dom-$ editor-$))
+        editor-$
+        (ulmus/map (fn [[kind workspace]]
+                     ((state/isolate editor/Editor
+                                     [:workspaces
+                                      workspace
+                                      :edited
+                                      :yaml
+                                      (keyword (gensym))])
+                      {:kind (:property kind)}
+                      (assoc
+                        (select-keys sources [:recurrent/dom-$
+                                              :recurrent/state-$
+                                              :swagger-$])
+                        :definitions-$ definitions-$)))
+                   (ulmus/distinct
+                     (ulmus/filter
+                       #(every? identity %)
+                       (ulmus/zip
+                         (:selected-$ kind-picker)
+                         (ulmus/sample-on
+                           (:selected-$ workspace-list)
+                           (:selected-$ kind-picker))))))
 
-        side-panel (components/SidePanel
-                     {}
-                     {:dom-$ 
-                      (ulmus/map (fn [workspace-list-dom]
-                                   [:div {:class "workspaces"}
-                                    [:h4 {} "Workspaces"]
-                                    workspace-list-dom
-                                    [:div {:class "add-workspace"}
-                                     [:icon {:class "material-icons"}
-                                      "add"] 
-                                     [:div {} "Add Workspace"]]])
+        side-panel
+        (components/SidePanel
+          {}
+          {:dom-$ 
+           (ulmus/map (fn [workspace-list-dom]
+                        [:div {:class "workspaces"}
+                         [:h4 {} "Workspaces"]
+                         workspace-list-dom
+                         [:div {:class "add-workspace"}
+                          [:icon {:class "material-icons"}
+                           "add"] 
+                          [:div {} "Add Workspace"]]])
                       (:recurrent/dom-$ workspace-list))
-                      :recurrent/dom-$ (:recurrent/dom-$ sources)})]
+           :recurrent/dom-$ (:recurrent/dom-$ sources)})]
 
     {:swagger-$ (ulmus/signal-of [:get])
+     :state-$ (:recurrent/state-$ sources)
      :recurrent/state-$ (ulmus/merge
                           (ulmus/signal-of (fn [] initial-state))
+                          (ulmus/pickmap :recurrent/state-$ editor-$)
                           (ulmus/map (fn [name-change]
                                        (fn [state]
                                          (assoc-in state
@@ -110,7 +145,7 @@
                                            [:workspaces
                                             (keyword (gensym))]
                                            {:edited {:name "New Workspace"
-                                                     :yaml {:foo {}}}})))
+                                                     :yaml {}}})))
                                      ((:recurrent/dom-$ sources)
                                       ".add-workspace"
                                       "click")))
@@ -118,11 +153,16 @@
      (ulmus/choose
        (ulmus/start-with!
          :workspace
-         (ulmus/map (constantly :kind-picker) ((:recurrent/dom-$ sources) ".add-resource" "click")))
+         (ulmus/merge
+           (ulmus/map (constantly :kind-picker)
+                      ((:recurrent/dom-$ sources) ".add-resource" "click"))
+           (ulmus/map (constantly :editor)
+                      (:selected-$ kind-picker))
+           (ulmus/map (constantly :workspace)
+                      (ulmus/pickmap :save-$ editor-$))))
        {:workspace
         (ulmus/map
           (fn [[title-bar-dom side-panel-dom menu-dom graffle]]
-            (println graffle)
             [:div {:class "main"}
              [:div {:class "action-button add-resource"} "+"]
              title-bar-dom
@@ -135,6 +175,7 @@
                        (:recurrent/dom-$ side-panel)
                        (:recurrent/dom-$ menu)
                        (ulmus/pickmap :recurrent/dom-$ selected-graffle-$))))
+        :editor (ulmus/pickmap :recurrent/dom-$ editor-$)
         :kind-picker (:recurrent/dom-$ kind-picker)})}))
 
 (defn start!
