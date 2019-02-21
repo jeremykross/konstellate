@@ -116,6 +116,20 @@
                            "add"] 
                           [:div {} "Add Workspace"]]])
                       (:recurrent/dom-$ workspace-list))
+           :recurrent/dom-$ (:recurrent/dom-$ sources)})
+
+        info-panel
+        (components/InfoPanel
+          {}
+          {:dom-$ (ulmus/map (fn [resources]
+                               (println "Resources:" resources)
+                               `[:div {}
+                                 ~@(map (fn [[k v]]
+                                          [:div {} (str v)]) resources)])
+                             (ulmus/pickmap :selected-resources-$ selected-graffle-$))
+           :open?-$ (ulmus/map 
+                      #(not (empty? %))
+                      (ulmus/pickmap :selected-nodes-$ selected-graffle-$))
            :recurrent/dom-$ (:recurrent/dom-$ sources)})]
 
     {:swagger-$ (ulmus/signal-of [:get])
@@ -162,17 +176,19 @@
                       (ulmus/pickmap :save-$ editor-$))))
        {:workspace
         (ulmus/map
-          (fn [[title-bar-dom side-panel-dom menu-dom graffle]]
+          (fn [[title-bar-dom side-panel-dom info-panel-dom menu-dom graffle]]
             [:div {:class "main"}
              [:div {:class "action-button add-resource"} "+"]
              title-bar-dom
              menu-dom
              [:div {:class "main-content"}
               side-panel-dom
-              [:div {:class "graffle"} graffle]]])
+              [:div {:class "graffle"} graffle]
+              info-panel-dom]])
           (ulmus/distinct
             (ulmus/zip (:recurrent/dom-$ title-bar)
                        (:recurrent/dom-$ side-panel)
+                       (:recurrent/dom-$ info-panel)
                        (:recurrent/dom-$ menu)
                        (ulmus/pickmap :recurrent/dom-$ selected-graffle-$))))
         :editor (ulmus/pickmap :recurrent/dom-$ editor-$)

@@ -10,6 +10,7 @@
 (def shadow-color "rgba(46, 91, 255, 0.4)")
 (def shadow "0 5px 25px 0 rgba(46, 91, 255, 0.4)")
 (def left-shadow "5px 0px 25px 0 rgba(46, 91, 255, 0.4)")
+(def left-shadow "5px 0px 25px 0 rgba(46, 91, 255, 0.4)")
 
 (def primary "#FEA7BD")
 (def secondary "#09EDC8")
@@ -46,11 +47,13 @@
 
 (def Main [:.main {:display "flex"
                    :flex-direction "column"
+                   :overflow "hidden"
                    :position "relative"
                    :width "100%"
                    :height "100%"}
            [:.main-content {:display "flex"
-                            :flex 1}
+                            :flex 1
+                            :position "relative"}
             [:.workspaces {:display "flex"
                            :flex-direction "column"
                            :height "100%"}
@@ -80,7 +83,7 @@
                 :height "88px"
                 :padding "32px"
                 :position "relative"
-                :z-index 3}
+                :z-index 20}
    [:.workspace {:cursor "pointer"
                  :font-weight "bold"
                  :position "absolute"
@@ -103,7 +106,7 @@
                     :perspective "100px"
                     :transform-origin "50% 0"
                     :transition "transform 300ms ease, opacity 300ms ease"
-                    :z-index 5}
+                    :z-index 20}
    [:&.open {:opacity 1}]
    [:ol {:list-style-type "none"}
     [:li {:cursor "pointer"
@@ -118,6 +121,8 @@
                  :position "relative"
                  :width "32px"
                  :transition "width 500ms ease"}
+   [:&.dark {:background "black"
+             :color "white"}]
    [:&.open {:width "256px"}
     [(garden.selectors/> "" :.side-panel-content) {:opacity 1}]]
 
@@ -138,6 +143,22 @@
                   :width "32px"
                   :z-index "2"}
     [:&.open {:transform "rotate(-180deg)"}]]])
+
+(def InfoPanel
+  [:.info-panel {:background "rgba(0,0,0,0.9)"
+                 :box-shadow left-shadow
+                 :bottom 0
+                 :border-radius "8px"
+                 :color "white"
+                 :padding "32px"
+                 :margin "32px"
+                 :position "absolute"
+                 :width "312px"
+                 :top 0
+                 :right "-400px"
+                 :transition "right 500ms ease"
+                 :z-index 10}
+   [:&.open {:right "0px"}]])
 
 
 (def WorkspaceLabel
@@ -197,6 +218,7 @@
    Reset
    WorkspaceLabel
    WorkspaceList
+   InfoPanel
    SidePanel])
 
 (defn spit-styles!

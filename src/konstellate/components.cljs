@@ -147,3 +147,16 @@
                         (ulmus/zip
                           open?-$
                           (:dom-$ sources)))}))
+
+
+(recurrent/defcomponent InfoPanel
+  [props sources]
+  {:recurrent/dom-$
+   (ulmus/map
+     (fn [[open? dom]]
+       [:div {:class (str "info-panel " (if open? "open"))}
+        [:div {:class "info-panel-content"}
+         dom]])
+     (ulmus/zip
+       (:open?-$ sources)
+       (:dom-$ sources)))})
