@@ -9,7 +9,7 @@
   [props sources]
   {:recurrent/dom-$
    (ulmus/signal-of [:div {:class "title-bar"}
-                     [:h1 {} "konstellate"]
+                     ;[:h1 {} "konstellate"]
                      [:icon {:class "material-icons more"} "more_vert"]])})
 
 (recurrent/defcomponent FloatingMenu
@@ -21,7 +21,7 @@
          `[:div {:class ~(str "floating-menu " (if open? "open"))
                  :style ~pos}
            [:ol {}
-            ~@(map (fn [item] [:li {} item]) items)]])
+            ~@(map (fn [item] [:li {:class (str "floating-menu-item " item)} item]) items)]])
        (ulmus/zip
          (:items-$ sources)
          (:pos-$ sources)

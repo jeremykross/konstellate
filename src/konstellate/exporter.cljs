@@ -9,30 +9,6 @@
   [x]
   (.safeDump js/jsyaml (clj->js x)))
 
-(def a {:name "dev"
-        :yaml
-        {:deployment {:kind "Deployment"
-                      :image "wordpress"}
-         :replica {:kind "ReplicaSet"}
-         :config {:kind "ConfigMap"}}})
-  
-(def b {:name "prod"
-        :yaml
-        {:deployment {:kind "Deploment1"
-                      :image "wordpress"}
-         :replica {:kind "ReplicaSet"}}})
-
-(def c {:name "staging"
-        :yaml
-        {:deployment {:kind "Deploment1"
-                      :image "wordpress"}
-         :replica {:kind "ReplicaSet"}}})
-
-
-(def workspaces [a b c])
-
-; returns [common '(overlay for each workspace)]
-
 (defn extract-common
   [workspace-yaml-list]
   (let [common
@@ -55,34 +31,38 @@
   (let [overlays
         (resources->kustomize-files
           (fn [k r]
-            (str "/overlays/" (:name workspace) "/"
+            (str "overlays/" (:name workspace) "/"
                  (or (get-in r [:metadata :name])
                      (get-in workspace [:yaml k :metadata :name])
                      (name k))
                  ".yml"))
           overlay-yaml)]
-    (conj overlays
-          {:file (str "/overlays/" (:name workspace) "/kustomize.yml")
-           :content {:base "../../"
-                     :patches (map (fn [overlay]
-                                     (last
-                                       (string/split (:file overlay) "/")))
-                                   overlays)}})))
+    (if (empty? overlays) overlays
+      (conj overlays
+            {:file (str "overlays/" (:name workspace) "/kustomization.yml")
+             :content {:base "../../"
+                       :patches (map (fn [overlay]
+                                       (last
+                                         (string/split (:file overlay) "/")))
+                                     overlays)}}))))
 
   
 (defn workspaces->kustomize
   [workspaces]
-  (let [[common overlays] (extract-common (map :yaml workspaces))
+  (let [workspace-yaml (map :yaml workspaces)
+        [common unique] (extract-common workspace-yaml)
+        overlays (map (fn [workspace delta] delta)
+                      workspace-yaml unique)
         overlay-dirs (map kustomize-overlay
                           workspaces overlays)
         base (resources->kustomize-files
-               (fn [k r] (str "/" (or (get-in r [:metadata :name])
+               (fn [k r] (str "" (or (get-in r [:metadata :name])
                                       (name k)) ".yml"))
                common)]
     (flatten
       (conj overlay-dirs
             base
-            {:file "/kustomize.yml"
+            {:file "kustomization.yml"
              :content {:resources (map (fn [base]
                                          (last (string/split (:file base) "/")))
                                        base)}}))))
@@ -99,9 +79,13 @@
 
 (defn save-kustomize!
   [workspaces]
-  (let [zip (zip! (workspaces->kustomize workspaces))]
+  (.log js/console (str workspaces))
+  (let [kustomize (workspaces->kustomize workspaces)
+        zip (zip! kustomize)]
+    (println kustomize)
     (->
       (.generateAsync zip #js {:type "blob"})
+      (.catch #(println %))
       (.then #(js/saveAs % "kustomize.zip")))))
 
 

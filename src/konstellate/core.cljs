@@ -2,8 +2,10 @@
   (:require
     recurrent.core
     recurrent.drivers.vdom
+    [clojure.string :as string]
     [konstellate.components :as components]
     [konstellate.editor.core :as editor]
+    [konstellate.exporter :as exporter]
     [konstellate.graffle.core :as graffle]
     [recurrent.state :as state]
     [ulmus.signal :as ulmus]))
@@ -81,27 +83,55 @@
             :definitions-$ definitions-$))
 
         editor-$
-        (ulmus/map (fn [[kind workspace]]
-                     ((state/isolate editor/Editor
-                                     [:workspaces
-                                      workspace
-                                      :edited
-                                      :yaml
-                                      (keyword (gensym))])
-                      {:kind (:property kind)}
-                      (assoc
-                        (select-keys sources [:recurrent/dom-$
-                                              :recurrent/state-$
-                                              :swagger-$])
-                        :definitions-$ definitions-$)))
-                   (ulmus/distinct
-                     (ulmus/filter
-                       #(every? identity %)
-                       (ulmus/zip
-                         (:selected-$ kind-picker)
-                         (ulmus/sample-on
-                           (:selected-$ workspace-list)
-                           (:selected-$ kind-picker))))))
+        (ulmus/merge
+          (ulmus/map (fn [[kind workspace]]
+                       ((state/isolate editor/Editor
+                                       [:workspaces
+                                        workspace
+                                        :edited
+                                        :yaml
+                                        (keyword (gensym))])
+                        {:kind (:property kind)}
+                        (assoc
+                          (select-keys sources [:recurrent/dom-$
+                                                :recurrent/state-$
+                                                :swagger-$])
+                          :definitions-$ definitions-$)))
+                     (ulmus/distinct
+                       (ulmus/filter
+                         #(every? identity %)
+                         (ulmus/zip
+                           (:selected-$ kind-picker)
+                           (ulmus/sample-on
+                             (:selected-$ workspace-list)
+                             (:selected-$ kind-picker))))))
+          (ulmus/map (fn [edit-id]
+                       (let [path [:workspaces
+                                   @(:selected-$ workspace-list)
+                                   :edited
+                                   :yaml
+                                   edit-id]
+                             r (get-in @(:recurrent/state-$ sources) path)]
+                       ((state/isolate editor/Editor path)
+                        {:kind 
+                         (str 
+                           "io.k8s.api."
+                           (if (string/includes? (:apiVersion r) "/")
+                             (string/replace (:apiVersion r) "/" ".")
+                             (str "core." (:apiVersion r)))
+                           "."
+                           (:kind r))
+                         :initial-value r}
+                        (assoc
+                          (select-keys sources [:recurrent/dom-$
+                                                :recurrent/state-$
+                                                :swagger-$])
+                          :definitions-$ definitions-$))))
+                     (ulmus/sample-on
+                       (ulmus/map
+                         first
+                         (ulmus/pickmap :selected-nodes-$ selected-graffle-$))
+                       ((:recurrent/dom-$ sources) ".button.edit-resource" "click"))))
 
         side-panel
         (components/SidePanel
@@ -121,22 +151,66 @@
         info-panel
         (components/InfoPanel
           {}
-          {:dom-$ (ulmus/map (fn [resources]
-                               (println "Resources:" resources)
+          {:dom-$ (ulmus/map (fn [resource]
                                `[:div {}
-                                 ~@(map (fn [[k v]]
-                                          [:div {} (str v)]) resources)])
-                             (ulmus/pickmap :selected-resources-$ selected-graffle-$))
+                                 [:div {:class "button edit-resource"}
+                                  "Edit"]
+                                 ~@(if (:konstellate/antecedant (meta resource))
+                                     [[:div {:class "button edit-resource"}
+                                       "Revert"]
+                                      [:div {:class "button edit-resource"}
+                                       "Apply"]])
+                                 [:div {:class "resource"} ~(exporter/clj->yaml resource)]])
+                             (ulmus/map #(first (vals %))
+                                        (ulmus/pickmap :selected-resources-$ selected-graffle-$)))
            :open?-$ (ulmus/map 
                       #(not (empty? %))
                       (ulmus/pickmap :selected-nodes-$ selected-graffle-$))
            :recurrent/dom-$ (:recurrent/dom-$ sources)})]
+
+    (ulmus/subscribe!
+      ((:recurrent/dom-$ sources) ".workspace-label" "dragstart")
+      (fn [e]
+        (.setData (.-dataTransfer e)
+                  "text" 
+                  (.getAttribute (.-currentTarget e) "data-id"))))
+
+    (ulmus/subscribe!
+      ((:recurrent/dom-$ sources) ".graffle" "dragover")
+      (fn [e]
+        (.preventDefault e)))
+
+    (ulmus/subscribe!
+      ((:recurrent/dom-$ sources) ".floating-menu-item.Export" "click")
+      (fn []
+        (exporter/save-kustomize!
+          (map (fn [[k workspace]]
+                 (:edited workspace))
+               (:workspaces
+                 @(:recurrent/state-$ sources))))))
 
     {:swagger-$ (ulmus/signal-of [:get])
      :state-$ (:recurrent/state-$ sources)
      :recurrent/state-$ (ulmus/merge
                           (ulmus/signal-of (fn [] initial-state))
                           (ulmus/pickmap :recurrent/state-$ editor-$)
+                          (ulmus/map (fn [e]
+                                       (fn [state]
+                                         (let [from-id (keyword (.getData (.-dataTransfer e) "text"))
+                                               src-yaml
+                                               (into {}
+                                                     (map (fn [[k v]] [k (with-meta v {:konstellate/antecedant from-id})])
+                                                          (get-in state [:workspaces
+                                                                         from-id
+                                                                         :edited
+                                                                         :yaml])))]
+                                           (update-in state
+                                                      [:workspaces
+                                                       @(:selected-$ workspace-list)
+                                                       :edited
+                                                       :yaml]
+                                                      #(merge % src-yaml)))))
+                                     ((:recurrent/dom-$ sources) ".graffle" "drop"))
                           (ulmus/map (fn [name-change]
                                        (fn [state]
                                          (assoc-in state
@@ -171,7 +245,9 @@
            (ulmus/map (constantly :kind-picker)
                       ((:recurrent/dom-$ sources) ".add-resource" "click"))
            (ulmus/map (constantly :editor)
-                      (:selected-$ kind-picker))
+                      (ulmus/merge
+                        ((:recurrent/dom-$ sources) ".button.edit-resource" "click")
+                        (:selected-$ kind-picker)))
            (ulmus/map (constantly :workspace)
                       (ulmus/pickmap :save-$ editor-$))))
        {:workspace

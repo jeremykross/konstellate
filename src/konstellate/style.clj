@@ -158,6 +158,8 @@
                  :right "-400px"
                  :transition "right 500ms ease"
                  :z-index 10}
+   [:.resource {:white-space "pre-wrap"}]
+   [:.button {:margin-bottom "16px"}]
    [:&.open {:right "0px"}]])
 
 
