@@ -31,7 +31,8 @@
   [props sources]
   (let [value-$ (ulmus/map  
                   #(.-value (.-target %))
-                  ((:recurrent/dom-$ sources) "input" "keyup"))
+                  ((:recurrent/dom-$ sources) "input" "keypress"))
+
         editing?-$ 
         (ulmus/start-with! true
           (ulmus/merge

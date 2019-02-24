@@ -31,10 +31,11 @@
 
 (defn extract-depth-common
   ([acc n depth workspace-yaml-list]
-   (if (or (= n depth)
-           (<= (count (remove nil? workspace-yaml-list)) 1))
-     acc
-     (let [extraction (extract-common workspace-yaml-list)]
+   (println n ":" workspace-yaml-list)
+   (let [extraction (extract-common workspace-yaml-list)]
+     (if (or (= n depth)
+             (= (second extraction) workspace-yaml-list))
+       acc
        (extract-depth-common
          (conj acc extraction)
          (inc n)
@@ -63,7 +64,7 @@
         prefix-path (fn [n] (map (fn [n] (str "base_" n "/")) (range n)))
 
 
-        workspace-yaml test-data ;(map :yaml workspaces)
+        workspace-yaml (map :yaml workspaces)
 
         all-resources (apply merge workspace-yaml)
 
@@ -129,8 +130,10 @@
                     (with-name-kind (:patch grouped)))))))
           []
           (map vector
-               workspace-yaml
+               workspaces
                overlays))]
+
+    (println extractions)
 
     (flatten (concat base-files overlay-files))))
 
@@ -150,7 +153,6 @@
   (.log js/console (str workspaces))
   (let [kustomize (workspaces->kustomize workspaces)
         zip (zip! kustomize)]
-    (println kustomize)
     (->
       (.generateAsync zip #js {:type "blob"})
       (.catch #(println %))
