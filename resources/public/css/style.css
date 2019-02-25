@@ -100,6 +100,7 @@ body * {
   display: flex;
   flex-direction: column;
   position: relative;
+  overflow: hidden;
   height: 100%;
   width: 100%;
 }
@@ -145,6 +146,15 @@ body * {
 
 .node .outline.selected {
   border: 1px solid #00a2ff;
+}
+
+.node .name {
+  line-height: 100%;
+  position: absolute;
+  pointer-events: none;
+  text-align: center;
+  font-size: 12px;
+  width: 100%;
 }
 
 .add-resource {
@@ -379,6 +389,14 @@ body * {
   transition: right 500ms ease;
   background: rgba(0,0,0,0.9);
   color: white;
+}
+
+.info-panel .resource {
+  white-space: pre-wrap;
+}
+
+.info-panel .button {
+  margin-bottom: 16px;
 }
 
 .info-panel.open {

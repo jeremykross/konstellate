@@ -37,7 +37,7 @@
                  (select-keys sources [:recurrent/dom-$])
                  {:pos-$ (ulmus/signal-of {:top "68px" :right "32px"})
                   :open?-$ (ulmus/reduce not false ((:recurrent/dom-$ sources) ".more" "click"))
-                  :items-$ (ulmus/signal-of ["New" "Open" "Save" "Export"])}))
+                  :items-$ (ulmus/signal-of ["New" "Open" "Save" "Export-Konstellate" "Export-Helm"])}))
 
         workspaces-$
         (ulmus/map 
@@ -181,13 +181,23 @@
         (.preventDefault e)))
 
     (ulmus/subscribe!
-      ((:recurrent/dom-$ sources) ".floating-menu-item.Export" "click")
+      ((:recurrent/dom-$ sources) ".floating-menu-item.Export-Konstellate" "click")
       (fn []
         (exporter/save-kustomize!
           (map (fn [[k workspace]]
                  (:edited workspace))
                (:workspaces
                  @(:recurrent/state-$ sources))))))
+
+    (ulmus/subscribe!
+      ((:recurrent/dom-$ sources) ".floating-menu-item.Export-Helm" "click")
+      (fn []
+        (exporter/save-helm!
+          (map (fn [[k workspace]]
+                 (:edited workspace))
+               (:workspaces
+                 @(:recurrent/state-$ sources))))))
+
 
     {:swagger-$ (ulmus/signal-of [:get])
      :state-$ (:recurrent/state-$ sources)

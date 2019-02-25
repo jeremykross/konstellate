@@ -77,15 +77,28 @@
                            (fn [acc [path value]]
                              (assoc-in acc path
                                        (if (some #{(into [r-id] path)} override-keys)
-                                         (str "{{ Values." (string/join "-" (map name path)) " }}")
-                                         value))))
-        values-content (fn [override])]
+                                         (str "{{ Values." (string/join "." (map name path)) " }}")
+                                         value))))]
+
+
+    (println (map meta overrides))
                                        
-    (map (fn [[k r]]
-           {:file (str "templates/" (file-name r))
-            :content (reduce (inflate-template k)
-                             {} (flat-keys r))})
-         resources)))
+    (concat
+      (map (fn [[k r]]
+             {:file (str "templates/" (file-name r))
+              :content (reduce (inflate-template k)
+                               {} (flat-keys r))})
+           resources)
+      (map (fn [[idx override]]
+             {:file (string/lower-case (str "values_" (:workspace-name (meta (get (into [] overrides) idx))) ".yml"))
+              :content (reduce (fn [acc [k v]] (assoc acc 
+                                                      (string/join "." (map name (rest k))) v))
+                               {} override)})
+
+           (remove #(every? empty? (second %) )
+                   (map-indexed vector flat-overrides))))))
+
+
 
 
 (defn resource-assoc-fn
@@ -174,13 +187,14 @@
 
 (defn workspaces->helm
   [workspaces]
-  (let [workspace-yaml workspaces ;(map :yaml workspaces)
+  (println workspaces)
+  (let [workspace-yaml (map :yaml workspaces)
         extractions 
         (extract-depth-common 10 workspace-yaml)
         all-resources (apply merge workspace-yaml)
         index-meta (fn [i overlay]
                      (with-meta overlay
-                                {:workspace-name (get-in workspaces [i :name])}))
+                                {:workspace-name (get-in (into [] workspaces) [i :name])}))
         overlays 
         (map-indexed
           index-meta
@@ -188,7 +202,7 @@
                     (map merge acc overlay))
                   (repeat (count workspace-yaml) {})
                   extractions))]
-    (println (map meta overlays))
+
     (helm-templates all-resources overlays)))
     
 (defn zip!
@@ -200,15 +214,22 @@
              (clj->yaml (:content file))))
     zip))
 
+(defn save-zip-as!
+  [zip filename]
+  (-> (.generateAsync zip #js {:type "blob"})
+      (.catch #(println %))
+      (.then #(js/saveAs % filename))))
+
+
 (defn save-kustomize!
   [workspaces]
-  (.log js/console (str workspaces))
   (let [kustomize (workspaces->kustomize workspaces)
         zip (zip! kustomize)]
-    (->
-      (.generateAsync zip #js {:type "blob"})
-      (.catch #(println %))
-      (.then #(js/saveAs % "kustomize.zip")))))
+    (save-zip-as! zip "kustomize.zip")))
 
-
+(defn save-helm!
+  [workspaces]
+  (let [helm (workspaces->helm workspaces)
+        zip (zip! helm)]
+    (save-zip-as! zip "helm.zip")))
 
