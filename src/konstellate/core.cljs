@@ -290,3 +290,6 @@
        :recurrent/dom-$ (recurrent.drivers.vdom/for-id! "app")})))
 
 (set! (.-onerror js/window) #(println %))
+
+(.addEventListener js/document "DOMContentLoaded" start!)
+
