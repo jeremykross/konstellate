@@ -2,6 +2,7 @@
   (:require
     cljsjs.js-yaml
     cljsjs.jszip
+    clojure.walk
     [clojure.data :as data]
     [clojure.string :as string]))
 
@@ -20,6 +21,16 @@
   [x]
   (.safeDump js/jsyaml (clj->js x)))
 
+(defn flat-keys
+  ([m ks r]
+  (if (map? m)
+    (apply merge
+      (map (fn [[k v]]
+             (flat-keys v (conj ks k) r))
+           m))
+    (assoc r ks m)))
+  ([m] (flat-keys m [] {})))
+
 (defn extract-common
   ([workspace-yaml-list]
    (let [common
@@ -31,7 +42,6 @@
 
 (defn extract-depth-common
   ([acc n depth workspace-yaml-list]
-   (println n ":" workspace-yaml-list)
    (let [extraction (extract-common workspace-yaml-list)]
      (if (or (= n depth)
              (= (second extraction) workspace-yaml-list))
@@ -58,6 +68,43 @@
                  :patches (map file-name patches)}})))
 
 
+(defn helm-templates
+  [resources overrides]
+  (let [flat-overrides (map flat-keys overrides)
+        override-keys (keys (apply merge flat-overrides))
+        file-name (fn [r] (string/lower-case (str (get-in r [:metadata :name]) "-" (:kind r) ".yml")))
+        inflate-template (fn [r-id]
+                           (fn [acc [path value]]
+                             (assoc-in acc path
+                                       (if (some #{(into [r-id] path)} override-keys)
+                                         (str "{{ Values." (string/join "-" (map name path)) " }}")
+                                         value))))
+        values-content (fn [override])]
+                                       
+    (map (fn [[k r]]
+           {:file (str "templates/" (file-name r))
+            :content (reduce (inflate-template k)
+                             {} (flat-keys r))})
+         resources)))
+
+
+(defn resource-assoc-fn
+  [all-resources]
+  (fn [path [k r]]
+       [k (assoc-in r
+                    path
+                    (get-in all-resources (into [k] path)))]))
+
+(defn with-name-kind-fn
+  [all-resources]
+  (let [resource-assoc (resource-assoc-fn all-resources)]
+    #(into {}
+           (map (comp
+                  (partial resource-assoc [:kind])
+                  (partial resource-assoc [:metadata :name]))
+                %))))
+
+
 (defn workspaces->kustomize
   [workspaces]
   (let [base-path (fn [n] (repeat n "../"))
@@ -68,18 +115,8 @@
 
         all-resources (apply merge workspace-yaml)
 
-        associate (fn [path [k r]]
-                    [k (assoc-in r
-                                 path
-                                 (get-in all-resources (into [k] path)))])
-
-        with-name-kind #(into
-                          {}
-                          (map (comp
-                                 (partial associate [:kind])
-                                 (partial associate [:metadata :name]))
-                               %))
-
+        with-name-kind (with-name-kind-fn all-resources)
+        
         group-patch-resource
         (fn [established resources] 
           (group-by
@@ -133,12 +170,27 @@
                workspaces
                overlays))]
 
-    (println extractions)
-
     (flatten (concat base-files overlay-files))))
 
-
- 
+(defn workspaces->helm
+  [workspaces]
+  (let [workspace-yaml workspaces ;(map :yaml workspaces)
+        extractions 
+        (extract-depth-common 10 workspace-yaml)
+        all-resources (apply merge workspace-yaml)
+        index-meta (fn [i overlay]
+                     (with-meta overlay
+                                {:workspace-name (get-in workspaces [i :name])}))
+        overlays 
+        (map-indexed
+          index-meta
+          (reduce (fn [acc [_ overlay]]
+                    (map merge acc overlay))
+                  (repeat (count workspace-yaml) {})
+                  extractions))]
+    (println (map meta overlays))
+    (helm-templates all-resources overlays)))
+    
 (defn zip!
   [desc]
   (let [zip (js/JSZip.)]
@@ -157,8 +209,6 @@
       (.generateAsync zip #js {:type "blob"})
       (.catch #(println %))
       (.then #(js/saveAs % "kustomize.zip")))))
-
-
 
 
 
