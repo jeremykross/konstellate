@@ -8,16 +8,24 @@
     [konstellate.components.style :as components]))
 
 (def shadow-color "rgba(46, 91, 255, 0.4)")
-(def shadow "0 5px 25px 0 rgba(46, 91, 255, 0.4)")
+(def shadow "0 5px 25px 0 rgba(0, 0, 0, 0.6)")
 (def left-shadow "5px 0px 25px 0 rgba(46, 91, 255, 0.4)")
-(def left-shadow "5px 0px 25px 0 rgba(46, 91, 255, 0.4)")
+(def bottom-shadow "0 2px 12px 0 rgba(8, 16, 24, 0.5)")
+(def right-shadow "0 5px 25px 0 rgba(8, 16, 24, 0.3)")
 
 (def primary "#FEA7BD")
 (def secondary "#09EDC8")
 (def grey "#f4f6fc")
-(def highlight "#00a2ff")
 (def text "#081018")
+
 (def border "#d9e1ff")
+(def base-dark "#141d26")
+(def black "#081018")
+(def highlight "#00a2ff")
+(def light-text "#b0bac9")
+(def border "#212b35")
+
+(def background-gradient "linear-gradient(170deg, #212b35, #081018)")
 
 (defkeyframes FadeInAnim
   [:from {:opacity 0
@@ -28,7 +36,7 @@
 (def Reset
   [[:html :body {:width "100%"
                  :height "100%"}]
-   [:body {:background grey
+   [:body {:background-image background-gradient
            :box-sizing "border-box"
            :color text
            :font-style "sans-serif"
@@ -38,6 +46,7 @@
            :width "100%"
            :height "100%"}]
    [:h1 {:font-size "32px"
+         :font-weight "normal"
          :letter-spacing "4px"}]
    [:#app {:width "100%"
            :height "100%"}]
@@ -59,105 +68,169 @@
                            :height "100%"}
              [:icon {:font-size "18px"
                      :margin-right "8px"}]
-             [:.add-workspace {:border-top (str "1px solid " border)
+             [:.add-workspace {:background base-dark
                                :cursor "pointer"
                                :display "flex"
                                :align-items "center"
                                :font-size "14px"
-                               :padding "16px 0 16px 29px"}]]
-            [:.graffle {:box-shadow left-shadow
+                               :padding "16px 0 16px 29px"
+                               :text-transform "uppercase"
+                               :white-space "nowrap"}
+              [:icon {:display "block"
+                      :margin-left "auto"
+                      :margin-right "24px"}]]]
+            [:.graffle {
                         :flex 1
                         :z-index 2}]]])
 
 
 (def AddResource
-  [:.add-resource {:bottom "48px !important"
+  [:.add-resource {:background (str highlight " !important")
+                   :bottom "48px !important"
                    :right "48px !important"
-                   :z-index 5}])
+                   :transition "right 500ms ease"
+                   :z-index 5}
+   [:&.panel-open {:right "400px !important"}]])
 
 (def TitleBar
-  [:.title-bar {:background "white"
-                :border-bottom (str "1px solid " border)
+  [:.title-bar {:background base-dark
+                :box-shadow bottom-shadow
+                :color "white"
                 :display "flex"
                 :align-items "center"
                 :height "88px"
                 :padding "32px"
                 :position "relative"
+                :text-align "center"
                 :z-index 20}
+
+   [:.button {:height "48px"
+              :line-height "48px"}]
+   [".button > img" {:margin-left "8px"}]
+
+   [(garden.selectors/> "" :img) {:position "absolute"
+                                  :display "block"
+                                  :left "50%"
+                                  :transform "translateX(-50%)"}]
+
    [:.workspace {:cursor "pointer"
                  :font-weight "bold"
                  :position "absolute"
                  :text-align "center"
                  :width "100%"}]
-   [:.more {:cursor "pointer"
+
+   [:.more {:background black
+            :border "none"
+            :cursor "pointer"
             :display "block"
-            :margin-left "auto"}]])
+            :font-weight "normal"
+            :font-size "14px"
+            :letter-spacing "2px"
+            :margin-left "auto"
+            :text-transform "uppercase"}]])
                 
 
 (def FloatingMenu
   [:.floating-menu {:background "white"
                     :border (str "1px solid " border)
-                    :border-radius "4px"
-                    :font-size "14px"
+                    :border-radius "8px"
+                    :box-shadow shadow
+                    :font-size "12px"
+                    :font-weight "bold"
                     :opacity 0
-                    :padding "8px 0"
+                    :padding "16px 32px"
+                    :pointer-events "none"
                     :position "absolute"
                     :min-width "128px"
                     :perspective "100px"
+                    :text-transform "uppercase"
+                    :letter-spacing "2px"
                     :transform-origin "50% 0"
                     :transition "transform 300ms ease, opacity 300ms ease"
                     :z-index 20}
-   [:&.open {:opacity 1}]
+   [:&.open {:opacity 1
+             :pointer-events "all"}]
    [:ol {:list-style-type "none"}
     [:li {:cursor "pointer"
-          :padding "16px 0"
-          :text-align "center"}
-     [:&:hover {:background highlight}]]]])
+          :padding "16px 0"}
+     [:&:hover {:color highlight}]]]])
 
 (def SidePanel
-  [:.side-panel {:background "white"
+  [:.side-panel {:background black
+                 :box-shadow right-shadow
+                 :color "white"
                  :height "100%"
                  :overflow "hidden"
                  :position "relative"
-                 :width "32px"
+                 :width "64px"
                  :transition "width 500ms ease"}
+
    [:&.dark {:background "black"
              :color "white"}]
-   [:&.open {:width "256px"}
+
+   [:&.open {:width "320px"}
     [(garden.selectors/> "" :.side-panel-content) {:opacity 1}]]
 
-   [:h4 {:letter-spacing "1.8px"
-         :margin "16px 0 8px 40px"}]
+   [:h4 {:letter-spacing "1px"
+         :margin "24px"
+         :font-weight "normal"
+         :text-transform "uppercase"}]
+
    [:.side-panel-content {:height "100%"
                           :opacity 0
-                          :width "256px"
+                          :width "100%"
                           :transition "opacity 500ms ease"}]
    [:.open-arrow {:cursor "pointer"
                   :position "absolute"
                   :font-size "14px"
-                  :left 0
+                  :right "27px"
                   :text-align "center"
-                  :top "18px"
+                  :top "26px"
                   :transform-origin "50% 50%"
                   :transition "transform 500ms ease"
-                  :width "32px"
+                  :transform "rotate(-180deg)"
+                  :width "14px"
                   :z-index "2"}
-    [:&.open {:transform "rotate(-180deg)"}]]])
+    [:&.open {:transform "rotate(0)"}]]])
 
 (def InfoPanel
-  [:.info-panel {:background "rgba(0,0,0,0.9)"
-                 :box-shadow left-shadow
+  [:.info-panel {:background black
                  :bottom 0
                  :border-radius "8px"
-                 :color "white"
-                 :padding "32px"
+                 :box-shadow shadow
+                 :color light-text
+                 :font-size "14px"
                  :margin "32px"
                  :position "absolute"
-                 :width "312px"
+                 :width "320px"
                  :top 0
                  :right "-400px"
                  :transition "right 500ms ease"
                  :z-index 10}
+
+   [:.heading {:border-bottom (str "1px solid " border)
+               :align-items "center"
+               :justify-content "center"
+               :display "flex"
+               :padding "24px"}
+    [:.edit {:color highlight
+             :cursor "pointer"
+             :font-weight "bold"
+             :margin-left "auto"
+             :text-transform "uppercase"}]]
+
+   [:h3 {:color "white"
+         :font-size "16px"}]
+
+   [:h4 {:font-size "12px"
+         :font-weight "bold"
+         :letter-spacing "2px"
+         :text-transform "uppercase"}]
+
+   [:.info {:display "grid"
+            :grid-gap "8px"
+            :margin "24px"}]
+
    [:.resource {:white-space "pre-wrap"}]
    [:.button {:margin-bottom "16px"}]
    [:&.open {:right "0px"}]])

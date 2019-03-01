@@ -81,8 +81,6 @@
                                          value))))]
 
 
-    (println (map meta overrides))
-                                       
     (concat
       (map (fn [[k r]]
              {:file (str "templates/" (file-name r))
@@ -121,7 +119,7 @@
 (defn workspaces->kustomize
   [workspaces]
   (let [base-path (fn [n] (repeat n "../"))
-        prefix-path (fn [n] (map (fn [n] (str "base_" n "/")) (range n)))
+        prefix-path (fn [n] (map (fn [n] (str "overlay/")) (range n)))
 
 
         workspace-yaml (map :yaml workspaces)
@@ -187,7 +185,6 @@
 
 (defn workspaces->helm
   [workspaces]
-  (println workspaces)
   (let [workspace-yaml (map :yaml workspaces)
         extractions 
         (extract-depth-common 10 workspace-yaml)

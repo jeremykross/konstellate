@@ -9,8 +9,9 @@
   [props sources]
   {:recurrent/dom-$
    (ulmus/signal-of [:div {:class "title-bar"}
-                     ;[:h1 {} "konstellate"]
-                     [:icon {:class "material-icons more"} "more_vert"]])})
+                     [:img {:src "images/logo.svg"}]
+                     [:div {:class "more button"} "Export"
+                      [:img {:src "images/down.svg"}]]])})
 
 (recurrent/defcomponent FloatingMenu
   [props sources]
@@ -142,7 +143,7 @@
     {:recurrent/dom-$ (ulmus/map
                         (fn [[open? dom]]
                           `[:div {:class ~(str "side-panel " (if open? "open"))}
-                            [:icon {:class ~(str "material-icons open-arrow " (if open? "open"))} "arrow_back_ios"]
+                            [:img {:class ~(str "open-arrow " (if open? "open")) :src "images/collapse.svg"}]
                             [:div {:class "side-panel-content"}
                               ~dom]])
                         (ulmus/zip

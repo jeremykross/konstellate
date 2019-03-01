@@ -35,9 +35,9 @@
                {}
                (merge
                  (select-keys sources [:recurrent/dom-$])
-                 {:pos-$ (ulmus/signal-of {:top "68px" :right "32px"})
+                 {:pos-$ (ulmus/signal-of {:top "80px" :right "32px"})
                   :open?-$ (ulmus/reduce not false ((:recurrent/dom-$ sources) ".more" "click"))
-                  :items-$ (ulmus/signal-of ["New" "Open" "Save" "Export-Konstellate" "Export-Helm"])}))
+                  :items-$ (ulmus/signal-of ["Export To Yaml" "Export To Kustomize" "Export To Helm"])}))
 
         workspaces-$
         (ulmus/map 
@@ -142,30 +142,31 @@
                          [:h4 {} "Workspaces"]
                          workspace-list-dom
                          [:div {:class "add-workspace"}
+                          [:div {} "Add Workspace"]
                           [:icon {:class "material-icons"}
-                           "add"] 
-                          [:div {} "Add Workspace"]]])
+                           "add"]]])
                       (:recurrent/dom-$ workspace-list))
            :recurrent/dom-$ (:recurrent/dom-$ sources)})
+
+        info-panel-open?-$
+           (ulmus/map 
+             #(not (empty? %))
+             (ulmus/pickmap :selected-nodes-$ selected-graffle-$))
 
         info-panel
         (components/InfoPanel
           {}
           {:dom-$ (ulmus/map (fn [resource]
                                `[:div {}
-                                 [:div {:class "button edit-resource"}
-                                  "Edit"]
-                                 ~@(if (:konstellate/antecedant (meta resource))
-                                     [[:div {:class "button edit-resource"}
-                                       "Revert"]
-                                      [:div {:class "button edit-resource"}
-                                       "Apply"]])
-                                 [:div {:class "resource"} ~(exporter/clj->yaml resource)]])
+                                 [:div {:class "heading"}
+                                  [:h3 {} ~(get-in resource [:metadata :name])]
+                                  [:div {:class "edit"} "Edit"]]
+                                 [:div {:class "info"}
+                                  [:h4 {} "Kind"]
+                                  [:div {} ~(:kind resource)]]])
                              (ulmus/map #(first (vals %))
                                         (ulmus/pickmap :selected-resources-$ selected-graffle-$)))
-           :open?-$ (ulmus/map 
-                      #(not (empty? %))
-                      (ulmus/pickmap :selected-nodes-$ selected-graffle-$))
+           :open?-$ info-panel-open?-$
            :recurrent/dom-$ (:recurrent/dom-$ sources)})]
 
     (ulmus/subscribe!
@@ -181,7 +182,7 @@
         (.preventDefault e)))
 
     (ulmus/subscribe!
-      ((:recurrent/dom-$ sources) ".floating-menu-item.Export-Konstellate" "click")
+      ((:recurrent/dom-$ sources) ".floating-menu-item.Export-Kustomize" "click")
       (fn []
         (exporter/save-kustomize!
           (map (fn [[k workspace]]
@@ -262,9 +263,9 @@
                       (ulmus/pickmap :save-$ editor-$))))
        {:workspace
         (ulmus/map
-          (fn [[title-bar-dom side-panel-dom info-panel-dom menu-dom graffle]]
+          (fn [[title-bar-dom side-panel-dom info-panel-dom menu-dom info-panel-open? graffle]]
             [:div {:class "main"}
-             [:div {:class "action-button add-resource"} "+"]
+             [:div {:class (str "action-button add-resource " (if info-panel-open? "panel-open"))} "+"]
              title-bar-dom
              menu-dom
              [:div {:class "main-content"}
@@ -276,6 +277,7 @@
                        (:recurrent/dom-$ side-panel)
                        (:recurrent/dom-$ info-panel)
                        (:recurrent/dom-$ menu)
+                       info-panel-open?-$
                        (ulmus/pickmap :recurrent/dom-$ selected-graffle-$))))
         :editor (ulmus/pickmap :recurrent/dom-$ editor-$)
         :kind-picker (:recurrent/dom-$ kind-picker)})}))
@@ -291,5 +293,4 @@
 
 (set! (.-onerror js/window) #(println %))
 
-(.addEventListener js/document "DOMContentLoaded" start!)
 
