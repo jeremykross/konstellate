@@ -135,6 +135,7 @@
                     :border (str "1px solid " border)
                     :border-radius "8px"
                     :box-shadow shadow
+                    :color text
                     :font-size "12px"
                     :font-weight "bold"
                     :opacity 0
@@ -238,22 +239,24 @@
 
 (def WorkspaceLabel
   [:.workspace-label {:cursor "pointer"
-                      :overflow "hidden"
                       :position "relative"}
-   [".workspace-label-content:hover .close" {:display "block"}]
+   [".workspace-label-content:hover .more" {:display "block"}]
    [:.workspace-label-content {:background "white"
                                :font-size "14px"
-                               :padding "4px 40px"
+                               :padding "4px 16px 4px 24px"
                                :position "relative"
                                :top "0"
                                :line-height "1.5em"
                                :transition "top 500ms ease"
                                :z-index 1}
+    [:.floating-menu {:top "32px"
+                      :right "24px"}]
     [:.label-standard-content {:display "flex"
                                :padding "8px 0"}]
     [:&.confirming {:top "56px"}]
     [:&.selected {:background "lightblue"}]
-    [:.close {:display "none"}]
+    [:.more {:display "none"
+             :font-size "14px"}]
     [:icon {:cursor "pointer"
             :font-size "18px"}]
     [:.the-name {:flex 1}]]

@@ -40,14 +40,8 @@
                        (ulmus/map (constantly true)
                                   ((:recurrent/dom-$ sources) ".label-standard-content" "dblclick"))
                        (ulmus/map (constantly false)
-                                  (keyboard/press 13))))
+                                  (keyboard/press 13))))]
 
-        confirm?-$ 
-        (ulmus/merge
-          (ulmus/map (constantly true)
-                     ((:recurrent/dom-$ sources) ".close" "click"))
-          (ulmus/map (constantly false)
-                     ((:recurrent/dom-$ sources) ".no" "click")))]
     ; external
     ; name-$
     ; dirty?-$
@@ -65,32 +59,28 @@
                                  :new-value new-value})
                 (ulmus/sample-on value-$ (ulmus/filter not editing?-$)))
      :recurrent/dom-$ (ulmus/map
-                        (fn [[the-name selected? editing? confirm? dirty?]]
+                        (fn [[workspace selected? editing? dirty?]]
                           [:div {:attributes {:data-id (str (name (:id props)))}
                                  :class "workspace-label"
                                  :draggable (not editing?)}
                            [:div {:class (str "workspace-label-content "
-                                              (if confirm? "confirming ")
                                               (if selected? "selected"))}
+                            [:div {:class "floating-menu"}
+                             [:ol {}
+                              [:li {:class "floating-menu-item"} "Rename"]
+                              [:li {:class "floating-menu-item"} "Delete"]
+                              [:li {:class "floating-menu-item"} "Clone"]]]
                             (if (not editing?)
                               [:div {:class "label-standard-content"}
-                               (if dirty?
-                                 [:icon {:class "material-icons md-18 save"} "save"])
-                               [:div {:class "the-name"} the-name]
-                               [:icon {:class "material-icons md-18 close"} "close"]]
+                               [:icon {:class "material-icons md-18"} "arrow_forward_ios"]
+                               [:div {:class "the-name"} (:name workspace)]
+                               [:icon {:class "material-icons md-18 menu"} "more"]]
                               [:div {:class "label-edit-content text-input"}
-                               [:input {:autofocus true :type "text"}]])]
-                           [:div {:class "confirm"}
-                            [:label {} "Sure?"]
-                            [:div {:attributes {:data-id (str (name (:id props)))}
-                                   :class "btn yes"} "Yes"]
-                            [:div {:class "btn no"} "No"]]])
+                               [:input {:autofocus true :type "text"}]])]])
                         (ulmus/zip
-                          (:name-$ sources)
+                          (:workspace-$ sources)
                           (ulmus/map (fn [selected-id] (= selected-id (:id props))) (:selected-$ sources))
-                          editing?-$
-                          confirm?-$
-                          (:dirty?-$ sources)))}))
+                          editing?-$))}))
 
 ; workspaces-$ {:gensym "Foo"}
 ; delete-workspace -> gensym
@@ -104,21 +94,22 @@
         labels-$ (ulmus/reduce (fn [acc [added removed]]
                                  (as-> acc a
                                    (apply dissoc a (keys removed))
-                                 (merge
-                                   a
-                                   (into 
-                                     {}
-                                     (map (fn [[k v]]
-                                            [k (WorkspaceLabel 
-                                                 {:id k}
-                                                 {:name-$
-                                                  (ulmus/map
-                                                    #(get-in % [k :name]) (:workspaces-$ sources))
-                                                  :dirty?-$
-                                                  (ulmus/map
-                                                    #(get-in % [k :dirty?]) (:workspaces-$ sources))
-                                                  :selected-$ selected-$
-                                                  :recurrent/dom-$ (:recurrent/dom-$ sources)})]) added)))))
+                                   (merge
+                                     a
+                                     (into 
+                                       {}
+                                       (map (fn [[k v]]
+                                              [k (WorkspaceLabel 
+                                                   {:id k}
+                                                   {:name-$
+                                                    (ulmus/map
+                                                      #(get-in % [k :name]) (:workspaces-$ sources))
+                                                    :workspace-$ (ulmus/map #(get % k) (:workspaces-$ sources))
+                                                    :dirty?-$
+                                                    (ulmus/map
+                                                      #(get-in % [k :dirty?]) (:workspaces-$ sources))
+                                                    :selected-$ selected-$
+                                                    :recurrent/dom-$ (:recurrent/dom-$ sources)})]) added)))))
                                {}
                                (ulmus/changed-keys (:workspaces-$ sources)))
         kw-id (fn [e]
