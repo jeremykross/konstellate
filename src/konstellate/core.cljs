@@ -45,6 +45,7 @@
             (into {}
                   (map (fn [[id workspace]]
                          [id {:name (get-in workspace [:edited :name])
+                              :yaml (get-in workspace [:edited :yaml])
                               :dirty? (not= (get-in workspace [:canonical :yaml])
                                             (get-in workspace [:edited :yaml]))}])
                        (:workspaces state))))

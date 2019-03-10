@@ -238,12 +238,16 @@
 
 
 (def WorkspaceLabel
-  [:.workspace-label {:cursor "pointer"
+  [:.workspace-label {:border-top (str "1px solid " border)
+                      :cursor "pointer"
+                      :padding "24px"
                       :position "relative"}
+   [:&:last-child {:border-bottom (str "1px solid " border)}]
+   [:&.open {}
+    [:.label-open-arrow {:transform "rotate(0)"}]]
+   [:.label-open-arrow {:transform "rotate(-90deg)"}]
    [".workspace-label-content:hover .more" {:display "block"}]
-   [:.workspace-label-content {:background "white"
-                               :font-size "14px"
-                               :padding "4px 16px 4px 24px"
+   [:.workspace-label-content {:font-size "16px"
                                :position "relative"
                                :top "0"
                                :line-height "1.5em"
@@ -251,35 +255,23 @@
                                :z-index 1}
     [:.floating-menu {:top "32px"
                       :right "24px"}]
-    [:.label-standard-content {:display "flex"
-                               :padding "8px 0"}]
-    [:&.confirming {:top "56px"}]
-    [:&.selected {:background "lightblue"}]
-    [:.more {:display "none"
-             :font-size "14px"}]
-    [:icon {:cursor "pointer"
-            :font-size "18px"}]
-    [:.the-name {:flex 1}]]
-   [:.confirm {:align-items "center"
-               :background "red"
-               :box-shadow (str "inset 0px 0px 25px " shadow-color)
-               :color "white"
-               :display "flex"
-               :left 0
-               :line-height "1.5em"
-               :font-weight "bold"
-               :padding "0 32px"
-               :position "absolute"
-               :top 0
-               :width "100%"
-               :height "100%"}
-    [:label {:margin-right "auto"}]
-    [:.btn {:border "1px solid white"
-            :border-radius "4px"
-            :cursor "pointer"
-            :margin-left "8px"
-            :text-align "center"
-            :width "72px"}]]])
+    [:.label-standard-content {}
+     [:.outer {:display "flex"}]
+     [:.inner {:diplay "grid"
+               :margin-left "19px"}
+      [:.resource {:padding-top "24px"}
+       [:.dot {:background "white"
+               :border-radius "50%"
+               :display "inline-block"
+               :height "8px"
+               :margin-right "16px"
+               :position "relative"
+               :top "-2px"
+               :vertical-align "middle"
+               :width "8px"}]]]]
+    [:&.selected {}]
+    [:.the-name {:flex 1
+                 :margin-left "8px"}]]])
 
 (def WorkspaceList [:.workload-panel {:flex 1}])
 

@@ -30,21 +30,23 @@
 
 (recurrent/defcomponent WorkspaceLabel
   [props sources]
-  (let [value-$ (ulmus/map  
+  (let [resource-fn (fn [r] [:div {:class "resource" :draggable true} 
+                             [:div {:class "dot"}]
+                             (str r)])
+        value-$ (ulmus/map  
                   #(.-value (.-target %))
                   ((:recurrent/dom-$ sources) "input" "keypress"))
 
         editing?-$ 
         (ulmus/start-with! true
           (ulmus/merge
-                       (ulmus/map (constantly true)
-                                  ((:recurrent/dom-$ sources) ".label-standard-content" "dblclick"))
-                       (ulmus/map (constantly false)
-                                  (keyboard/press 13))))]
+            (ulmus/map (constantly true)
+                       ((:recurrent/dom-$ sources) ".label-standard-content" "dblclick"))
+            (ulmus/map (constantly false)
+                       (keyboard/press 13))))]
 
     ; external
     ; name-$
-    ; dirty?-$
 
     ; own
     ; confirm?-$
@@ -59,7 +61,8 @@
                                  :new-value new-value})
                 (ulmus/sample-on value-$ (ulmus/filter not editing?-$)))
      :recurrent/dom-$ (ulmus/map
-                        (fn [[workspace selected? editing? dirty?]]
+                        (fn [[workspace selected? editing?]]
+                          (println workspace)
                           [:div {:attributes {:data-id (str (name (:id props)))}
                                  :class "workspace-label"
                                  :draggable (not editing?)}
@@ -72,9 +75,12 @@
                               [:li {:class "floating-menu-item"} "Clone"]]]
                             (if (not editing?)
                               [:div {:class "label-standard-content"}
-                               [:icon {:class "material-icons md-18"} "arrow_forward_ios"]
-                               [:div {:class "the-name"} (:name workspace)]
-                               [:icon {:class "material-icons md-18 menu"} "more"]]
+                               [:div {:class "outer"}
+                                 [:img {:class "label-open-arrow" :src "images/down.svg"}]
+                                 [:div {:class "the-name"} (:name workspace)]]
+                               [:div {:class "inner"}
+                                (map resource-fn (map #(get-in % [:metadata :name])
+                                                      (vals (:yaml workspace))))]]
                               [:div {:class "label-edit-content text-input"}
                                [:input {:autofocus true :type "text"}]])]])
                         (ulmus/zip
@@ -101,13 +107,7 @@
                                        (map (fn [[k v]]
                                               [k (WorkspaceLabel 
                                                    {:id k}
-                                                   {:name-$
-                                                    (ulmus/map
-                                                      #(get-in % [k :name]) (:workspaces-$ sources))
-                                                    :workspace-$ (ulmus/map #(get % k) (:workspaces-$ sources))
-                                                    :dirty?-$
-                                                    (ulmus/map
-                                                      #(get-in % [k :dirty?]) (:workspaces-$ sources))
+                                                   {:workspace-$ (ulmus/map #(get % k) (:workspaces-$ sources))
                                                     :selected-$ selected-$
                                                     :recurrent/dom-$ (:recurrent/dom-$ sources)})]) added)))))
                                {}
