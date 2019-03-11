@@ -30,9 +30,12 @@
 
 (recurrent/defcomponent WorkspaceLabel
   [props sources]
-  (let [resource-fn (fn [r] [:div {:class "resource" :draggable true} 
-                             [:div {:class "dot"}]
-                             (str r)])
+  (let [open?-$ (ulmus/reduce not true ((:recurrent/dom-$ sources) ".label-open-arrow" "click"))
+        resource-fn (fn [id selected? r] [:div {:attributes {:data-id (str (name id))}
+                                                :class (str "workspace-label-resource " (if selected? "selected"))
+                                                :draggable true} 
+                                       [:div {:class "dot"}]
+                                       (str r)])
         value-$ (ulmus/map  
                   #(.-value (.-target %))
                   ((:recurrent/dom-$ sources) "input" "keypress"))
@@ -61,13 +64,13 @@
                                  :new-value new-value})
                 (ulmus/sample-on value-$ (ulmus/filter not editing?-$)))
      :recurrent/dom-$ (ulmus/map
-                        (fn [[workspace selected? editing?]]
-                          (println workspace)
+                        (fn [[workspace selected-nodes open? selected? editing?]]
                           [:div {:attributes {:data-id (str (name (:id props)))}
                                  :class "workspace-label"
                                  :draggable (not editing?)}
                            [:div {:class (str "workspace-label-content "
-                                              (if selected? "selected"))}
+                                              (if selected? "selected ")
+                                              (if open? "open"))}
                             [:div {:class "floating-menu"}
                              [:ol {}
                               [:li {:class "floating-menu-item"} "Rename"]
@@ -79,12 +82,18 @@
                                  [:img {:class "label-open-arrow" :src "images/down.svg"}]
                                  [:div {:class "the-name"} (:name workspace)]]
                                [:div {:class "inner"}
-                                (map resource-fn (map #(get-in % [:metadata :name])
-                                                      (vals (:yaml workspace))))]]
+                                (map #(apply resource-fn %)
+                                     (map (fn [[id r]]
+                                            [id
+                                             (some #{id} selected-nodes)
+                                             (get-in r [:metadata :name])])
+                                          (:yaml workspace)))]]
                               [:div {:class "label-edit-content text-input"}
-                               [:input {:autofocus true :type "text"}]])]])
+                               [:input {:autofocus true :placeholder "Name Workspace" :type "text"}]])]])
                         (ulmus/zip
                           (:workspace-$ sources)
+                          (:selected-nodes-$ sources)
+                          open?-$
                           (ulmus/map (fn [selected-id] (= selected-id (:id props))) (:selected-$ sources))
                           editing?-$))}))
 
@@ -109,6 +118,7 @@
                                                    {:id k}
                                                    {:workspace-$ (ulmus/map #(get % k) (:workspaces-$ sources))
                                                     :selected-$ selected-$
+                                                    :selected-nodes-$ (:selected-nodes-$ sources)
                                                     :recurrent/dom-$ (:recurrent/dom-$ sources)})]) added)))))
                                {}
                                (ulmus/changed-keys (:workspaces-$ sources)))

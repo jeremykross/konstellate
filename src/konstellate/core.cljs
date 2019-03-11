@@ -12,6 +12,7 @@
 
 (comment def initial-state
   {:preferences {}
+   :selected-nodes #{}
    :workspaces
    {:gensym {:canonical {:name "Foo"
                          :yaml {:gensym-a {}}}
@@ -19,7 +20,8 @@
                       :yaml  {:gensym-b {:foo "bar"}}}}
     :gensym1 {:edited {:name "Bar"}}}})
 
-(def initial-state {:workspaces {}})
+(def initial-state {:selected-nodes #{}
+                    :workspaces {}})
 
 (defn Main
   [props sources]
@@ -38,6 +40,8 @@
                  {:pos-$ (ulmus/signal-of {:top "80px" :right "32px"})
                   :open?-$ (ulmus/reduce not false ((:recurrent/dom-$ sources) ".more" "click"))
                   :items-$ (ulmus/signal-of ["Export To Yaml" "Export To Kustomize" "Export To Helm"])}))
+
+        selected-nodes-$ (ulmus/map :selected-nodes (:recurrent/state-$ sources))
 
         workspaces-$
         (ulmus/map 
@@ -58,7 +62,10 @@
                                                      {}
                                                      (map (fn [k] [k ((state/isolate graffle/Graffle
                                                                                       [:workspaces k :edited :yaml])
-                                                                       {} (select-keys sources [:recurrent/dom-$ :recurrent/state-$]))]) gained))))
+                                                                       {} 
+                                                                       (assoc 
+                                                                         (select-keys sources [:recurrent/dom-$ :recurrent/state-$])
+                                                                         :selected-nodes-$ selected-nodes-$))]) gained))))
                                           {}
                                           (ulmus/distinct
                                             (ulmus/map #(map keys %)
@@ -68,6 +75,7 @@
         (components/WorkspaceList
           {} 
           {:recurrent/dom-$ (:recurrent/dom-$ sources)
+           :selected-nodes-$ (ulmus/map :selected-nodes (:recurrent/state-$ sources))
            :workspaces-$ workspaces-$})
 
         selected-graffle-$
@@ -131,7 +139,7 @@
                      (ulmus/sample-on
                        (ulmus/map
                          first
-                         (ulmus/pickmap :selected-nodes-$ selected-graffle-$))
+                         (ulmus/map :selected-nodes (:recurrent/state-$ sources)))
                        ((:recurrent/dom-$ sources) ".button.edit-resource" "click"))))
 
         side-panel
@@ -171,8 +179,11 @@
            :recurrent/dom-$ (:recurrent/dom-$ sources)})]
 
     (ulmus/subscribe!
-      ((:recurrent/dom-$ sources) ".workspace-label" "dragstart")
+      (ulmus/merge
+        ((:recurrent/dom-$ sources) ".workspace-label" "dragstart")
+        ((:recurrent/dom-$ sources) ".workspace-label-resource" "dragstart"))
       (fn [e]
+        (.stopPropagation e)
         (.setData (.-dataTransfer e)
                   "text" 
                   (.getAttribute (.-currentTarget e) "data-id"))))
@@ -206,6 +217,19 @@
      :recurrent/state-$ (ulmus/merge
                           (ulmus/signal-of (fn [] initial-state))
                           (ulmus/pickmap :recurrent/state-$ editor-$)
+                          (ulmus/map (fn [selected]
+                                       (fn [state]
+                                         (assoc state
+                                                :selected-nodes selected)))
+                                     (ulmus/distinct
+                                       (ulmus/pickmap :selected-nodes-$ selected-graffle-$)))
+                          (ulmus/map (fn [e]
+                                       (fn [state]
+                                         (let [id (keyword (.getAttribute (.-currentTarget e) "data-id"))]
+                                           (assoc state
+                                                  :selected-nodes
+                                                  #{id}))))
+                                     ((:recurrent/dom-$ sources) ".workspace-label-resource" "click"))
                           (ulmus/map (fn [e]
                                        (fn [state]
                                          (let [from-id (keyword (.getData (.-dataTransfer e) "text"))

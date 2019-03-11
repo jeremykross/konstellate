@@ -178,6 +178,7 @@
          :text-transform "uppercase"}]
 
    [:.side-panel-content {:height "100%"
+                          :max-height "100%"
                           :opacity 0
                           :width "100%"
                           :transition "opacity 500ms ease"}]
@@ -243,9 +244,6 @@
                       :padding "24px"
                       :position "relative"}
    [:&:last-child {:border-bottom (str "1px solid " border)}]
-   [:&.open {}
-    [:.label-open-arrow {:transform "rotate(0)"}]]
-   [:.label-open-arrow {:transform "rotate(-90deg)"}]
    [".workspace-label-content:hover .more" {:display "block"}]
    [:.workspace-label-content {:font-size "16px"
                                :position "relative"
@@ -253,13 +251,26 @@
                                :line-height "1.5em"
                                :transition "top 500ms ease"
                                :z-index 1}
+    [:&.selected {:color highlight}]
+    [:&.open {}
+     [:.label-open-arrow {:transform "rotate(0)"}]
+     [:.label-standard-content
+      [:.inner {:display "grid"}]]]
+
+    [:.label-open-arrow {:transition "transform 500ms ease"
+                         :transform "rotate(-90deg)"}]
+
     [:.floating-menu {:top "32px"
                       :right "24px"}]
     [:.label-standard-content {}
      [:.outer {:display "flex"}]
-     [:.inner {:diplay "grid"
+     [:.inner {:display "none"
                :margin-left "19px"}
-      [:.resource {:padding-top "24px"}
+      [:.workspace-label-resource {:color "white"
+                                   :padding-top "16px"
+                                   :white-space "nowrap"}
+       [:&.selected {:color highlight}
+        [:.dot {:background highlight}]]
        [:.dot {:background "white"
                :border-radius "50%"
                :display "inline-block"
@@ -273,7 +284,11 @@
     [:.the-name {:flex 1
                  :margin-left "8px"}]]])
 
-(def WorkspaceList [:.workload-panel {:flex 1}])
+(def WorkspaceList 
+  [:.workload-panel 
+   {:display "flex"
+    :flex-direction "column"
+    :flex 1}])
 
 (def styles
   [components/ActionButton
