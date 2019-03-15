@@ -9,7 +9,7 @@
 
 (def shadow-color "rgba(46, 91, 255, 0.4)")
 (def shadow "0 5px 25px 0 rgba(0, 0, 0, 0.6)")
-(def left-shadow "5px 0px 25px 0 rgba(46, 91, 255, 0.4)")
+(def left-shadow "5px 0px 25px 0 rgba(8, 16, 24, 0.3)")
 (def bottom-shadow "0 2px 12px 0 rgba(8, 16, 24, 0.5)")
 (def right-shadow "0 5px 25px 0 rgba(8, 16, 24, 0.3)")
 
@@ -79,9 +79,14 @@
               [:icon {:display "block"
                       :margin-left "auto"
                       :margin-right "24px"}]]]
-            [:.graffle {
+            [:.graffle {:box-shadow left-shadow
                         :flex 1
-                        :z-index 2}]]])
+                        :position "relative"
+                        :z-index 2}
+             [:.workspace-title {:color "white"
+                                 :left "32px"
+                                 :position "absolute"
+                                 :top "32px"}]]]])
 
 
 (def AddResource
@@ -93,25 +98,29 @@
    [:&.panel-open {:right "400px !important"}]])
 
 (def TitleBar
-  [:.title-bar {:background base-dark
+  [:.title-bar {:align-items "center"
+                :background base-dark
                 :box-shadow bottom-shadow
                 :color "white"
                 :display "flex"
-                :align-items "center"
                 :height "88px"
                 :padding "32px"
                 :position "relative"
-                :text-align "center"
                 :z-index 20}
+
+   [:.import {:cursor "pointer"
+              :flex 1
+              :font-size "16px"
+              :margin-right "56px"
+              :letter-spacing "2px"
+              :text-align "right"
+              :text-transform "uppercase"}]
+              
 
    [:.button {:height "48px"
               :line-height "48px"}]
    [".button > img" {:margin-left "8px"}]
 
-   [(garden.selectors/> "" :img) {:position "absolute"
-                                  :display "block"
-                                  :left "50%"
-                                  :transform "translateX(-50%)"}]
 
    [:.workspace {:cursor "pointer"
                  :font-weight "bold"
@@ -136,11 +145,11 @@
                     :border-radius "8px"
                     :box-shadow shadow
                     :color text
+                    :display "none"
                     :font-size "12px"
                     :font-weight "bold"
                     :opacity 0
                     :padding "16px 32px"
-                    :pointer-events "none"
                     :position "absolute"
                     :min-width "128px"
                     :perspective "100px"
@@ -149,8 +158,8 @@
                     :transform-origin "50% 0"
                     :transition "transform 300ms ease, opacity 300ms ease"
                     :z-index 20}
-   [:&.open {:opacity 1
-             :pointer-events "all"}]
+   [:&.open {:display "block"
+             :opacity 1}]
    [:ol {:list-style-type "none"}
     [:li {:cursor "pointer"
           :padding "16px 0"}
@@ -158,7 +167,6 @@
 
 (def SidePanel
   [:.side-panel {:background black
-                 :box-shadow right-shadow
                  :color "white"
                  :height "100%"
                  :overflow "hidden"
@@ -215,11 +223,11 @@
                :justify-content "center"
                :display "flex"
                :padding "24px"}
-    [:.edit {:color highlight
-             :cursor "pointer"
-             :font-weight "bold"
-             :margin-left "auto"
-             :text-transform "uppercase"}]]
+    [:.edit-resource {:color highlight
+                      :cursor "pointer"
+                      :font-weight "bold"
+                      :margin-left "auto"
+                      :text-transform "uppercase"}]]
 
    [:h3 {:color "white"
          :font-size "16px"}]
@@ -227,11 +235,14 @@
    [:h4 {:font-size "12px"
          :font-weight "bold"
          :letter-spacing "2px"
-         :text-transform "uppercase"}]
+         :margin-top "16px"
+         :text-transform "uppercase"}
+    [:&:first-child {:margin-top 0}]]
 
    [:.info {:display "grid"
             :grid-gap "8px"
-            :margin "24px"}]
+            :margin "24px"
+            :white-space "pre-wrap"}]
 
    [:.resource {:white-space "pre-wrap"}]
    [:.button {:margin-bottom "16px"}]
@@ -251,7 +262,6 @@
                                :line-height "1.5em"
                                :transition "top 500ms ease"
                                :z-index 1}
-    [:&.selected {:color highlight}]
     [:&.open {}
      [:.label-open-arrow {:transform "rotate(0)"}]
      [:.label-standard-content
@@ -261,11 +271,13 @@
                          :transform "rotate(-90deg)"}]
 
     [:.floating-menu {:top "32px"
-                      :right "24px"}]
-    [:.label-standard-content {}
+                      :right "8px"}]
+    [:.label-standard-content {:overflow "hidden"}
      [:.outer {:display "flex"}]
-     [:.inner {:display "none"
-               :margin-left "19px"}
+     [:.inner {:display "grid"
+               :margin-left "19px"
+               :height "0"
+               :transition "height 500ms ease"}
       [:.workspace-label-resource {:color "white"
                                    :padding-top "16px"
                                    :white-space "nowrap"}
@@ -280,6 +292,14 @@
                :top "-2px"
                :vertical-align "middle"
                :width "8px"}]]]]
+    [:.label-edit-content {:position "relative"}
+     [:.enter-to-continue {:color highlight
+                           :font-size "12px"
+                           :letter-spacing "2px"
+                           :right "16px"
+                           :top "8px"
+                           :position "absolute"
+                           :text-transform "uppercase"}]]
     [:&.selected {}]
     [:.the-name {:flex 1
                  :margin-left "8px"}]]])
@@ -288,7 +308,8 @@
   [:.workload-panel 
    {:display "flex"
     :flex-direction "column"
-    :flex 1}])
+    :flex 1
+    :overflow-y "auto"}])
 
 (def styles
   [components/ActionButton

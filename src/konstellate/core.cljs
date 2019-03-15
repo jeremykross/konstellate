@@ -1,12 +1,13 @@
 (ns konstellate.core
   (:require
     recurrent.core
-    recurrent.drivers.vdom
+    recurrent.drivers.rum
     [clojure.string :as string]
     [konstellate.components :as components]
     [konstellate.editor.core :as editor]
     [konstellate.exporter :as exporter]
     [konstellate.graffle.core :as graffle]
+    [konstellate.resource-desc :as desc]
     [recurrent.state :as state]
     [ulmus.signal :as ulmus]))
 
@@ -20,8 +21,8 @@
                       :yaml  {:gensym-b {:foo "bar"}}}}
     :gensym1 {:edited {:name "Bar"}}}})
 
-(def initial-state {:selected-nodes #{}
-                    :workspaces {}})
+(def initial-state {:workspaces {}})
+
 
 (defn Main
   [props sources]
@@ -41,15 +42,14 @@
                   :open?-$ (ulmus/reduce not false ((:recurrent/dom-$ sources) ".more" "click"))
                   :items-$ (ulmus/signal-of ["Export To Yaml" "Export To Kustomize" "Export To Helm"])}))
 
-        selected-nodes-$ (ulmus/map :selected-nodes (:recurrent/state-$ sources))
-
         workspaces-$
         (ulmus/map 
           (fn [state]
-            (into {}
+            (into (sorted-map)
                   (map (fn [[id workspace]]
                          [id {:name (get-in workspace [:edited :name])
                               :yaml (get-in workspace [:edited :yaml])
+                              :selected-nodes (get-in workspace [:edited :selected-nodes])
                               :dirty? (not= (get-in workspace [:canonical :yaml])
                                             (get-in workspace [:edited :yaml]))}])
                        (:workspaces state))))
@@ -65,7 +65,16 @@
                                                                        {} 
                                                                        (assoc 
                                                                          (select-keys sources [:recurrent/dom-$ :recurrent/state-$])
-                                                                         :selected-nodes-$ selected-nodes-$))]) gained))))
+                                                                         :selected-nodes-$ 
+                                                                         (ulmus/map
+                                                                           (fn [state]
+                                                                             (get-in state
+                                                                                     [:workspaces
+                                                                                      k
+                                                                                      :edited
+                                                                                      :selected-nodes]))
+                                                                           (:recurrent/state-$ sources))))])
+                                                          gained))))
                                           {}
                                           (ulmus/distinct
                                             (ulmus/map #(map keys %)
@@ -75,12 +84,16 @@
         (components/WorkspaceList
           {} 
           {:recurrent/dom-$ (:recurrent/dom-$ sources)
-           :selected-nodes-$ (ulmus/map :selected-nodes (:recurrent/state-$ sources))
            :workspaces-$ workspaces-$})
 
+        selected-workspace-$ (ulmus/map
+                               #(apply get %)
+                               (ulmus/zip workspaces-$
+                                          (:selected-$ workspace-list)))
         selected-graffle-$
-        (ulmus/map
-          #(apply get %) (ulmus/zip workspace-graffle-$ (:selected-$ workspace-list)))
+        (ulmus/distinct
+          (ulmus/map
+            #(apply get %) (ulmus/zip workspace-graffle-$ (:selected-$ workspace-list))))
 
         kind-picker
         (editor/KindPicker
@@ -139,8 +152,8 @@
                      (ulmus/sample-on
                        (ulmus/map
                          first
-                         (ulmus/map :selected-nodes (:recurrent/state-$ sources)))
-                       ((:recurrent/dom-$ sources) ".button.edit-resource" "click"))))
+                         (ulmus/pickmap :selected-nodes-$ selected-graffle-$))
+                       ((:recurrent/dom-$ sources) ".edit-resource" "click"))))
 
         side-panel
         (components/SidePanel
@@ -166,13 +179,20 @@
         (components/InfoPanel
           {}
           {:dom-$ (ulmus/map (fn [resource]
-                               `[:div {}
-                                 [:div {:class "heading"}
-                                  [:h3 {} ~(get-in resource [:metadata :name])]
-                                  [:div {:class "edit"} "Edit"]]
-                                 [:div {:class "info"}
-                                  [:h4 {} "Kind"]
-                                  [:div {} ~(:kind resource)]]])
+                               (let [description (desc/deployment resource)]
+                                 (println description)
+                                 `[:div {}
+                                   [:div {:class "heading"}
+                                    [:h3 {} ~(get-in resource [:metadata :name])]
+                                    [:div {:class "edit-resource"} "Edit"]]
+                                   [:div {:class "info"}
+                                    ~(map (fn [{:keys [label value]}]
+                                            [[:h4 {} label]
+                                             [:div {} 
+                                              (if (empty? (str value))
+                                                "--"
+                                                (str value))]])
+                                          description)]]))
                              (ulmus/map #(first (vals %))
                                         (ulmus/pickmap :selected-resources-$ selected-graffle-$)))
            :open?-$ info-panel-open?-$
@@ -211,7 +231,6 @@
                (:workspaces
                  @(:recurrent/state-$ sources))))))
 
-
     {:swagger-$ (ulmus/signal-of [:get])
      :state-$ (:recurrent/state-$ sources)
      :recurrent/state-$ (ulmus/merge
@@ -219,15 +238,22 @@
                           (ulmus/pickmap :recurrent/state-$ editor-$)
                           (ulmus/map (fn [selected]
                                        (fn [state]
-                                         (assoc state
-                                                :selected-nodes selected)))
+                                         (assoc-in state
+                                                [:workspaces
+                                                 @(:selected-$ workspace-list)
+                                                 :edited
+                                                 :selected-nodes]
+                                                selected)))
                                      (ulmus/distinct
                                        (ulmus/pickmap :selected-nodes-$ selected-graffle-$)))
                           (ulmus/map (fn [e]
                                        (fn [state]
                                          (let [id (keyword (.getAttribute (.-currentTarget e) "data-id"))]
-                                           (assoc state
-                                                  :selected-nodes
+                                           (assoc-in state
+                                                  [:workspaces
+                                                   @(:selected-$ workspace-list)
+                                                   :edited
+                                                   :selected-nodes]
                                                   #{id}))))
                                      ((:recurrent/dom-$ sources) ".workspace-label-resource" "click"))
                           (ulmus/map (fn [e]
@@ -282,20 +308,22 @@
                       ((:recurrent/dom-$ sources) ".add-resource" "click"))
            (ulmus/map (constantly :editor)
                       (ulmus/merge
-                        ((:recurrent/dom-$ sources) ".button.edit-resource" "click")
+                        ((:recurrent/dom-$ sources) ".edit-resource" "click")
                         (:selected-$ kind-picker)))
            (ulmus/map (constantly :workspace)
                       (ulmus/pickmap :save-$ editor-$))))
        {:workspace
         (ulmus/map
-          (fn [[title-bar-dom side-panel-dom info-panel-dom menu-dom info-panel-open? graffle]]
+          (fn [[title-bar-dom side-panel-dom info-panel-dom menu-dom info-panel-open? workspace graffle]]
             [:div {:class "main"}
              [:div {:class (str "action-button add-resource " (if info-panel-open? "panel-open"))} "+"]
              title-bar-dom
              menu-dom
              [:div {:class "main-content"}
               side-panel-dom
-              [:div {:class "graffle"} graffle]
+              [:div {:class "graffle"}
+               [:h4 {:class "workspace-title"} (get workspace :name)]
+               graffle]
               info-panel-dom]])
           (ulmus/distinct
             (ulmus/zip (:recurrent/dom-$ title-bar)
@@ -303,6 +331,7 @@
                        (:recurrent/dom-$ info-panel)
                        (:recurrent/dom-$ menu)
                        info-panel-open?-$
+                       selected-workspace-$
                        (ulmus/pickmap :recurrent/dom-$ selected-graffle-$))))
         :editor (ulmus/pickmap :recurrent/dom-$ editor-$)
         :kind-picker (:recurrent/dom-$ kind-picker)})}))
@@ -314,8 +343,8 @@
       (state/with-state Main)
       {}
       {:swagger-$                                                                      (recurrent.drivers.http/create!                                                   swagger-path {:with-credentials? false}) 
-       :recurrent/dom-$ (recurrent.drivers.vdom/for-id! "app")})))
+       :recurrent/dom-$ (recurrent.drivers.rum/create! "app")})))
 
 (set! (.-onerror js/window) #(println %))
 
-
+(.addEventListener js/document "DOMContentLoaded" start!)
