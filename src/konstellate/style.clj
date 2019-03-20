@@ -33,6 +33,12 @@
   [:to {:opacity 1
         :transform "scale(1, 1)"}])
 
+(defkeyframes FadeUp
+  [:from {:opacity 0
+          :transform "translateY(32px)"}]
+  [:to {:opacity 1
+        :transform "translateY(0)"}])
+
 (def Reset
   [[:html :body {:width "100%"
                  :height "100%"}]
@@ -79,23 +85,26 @@
               [:icon {:display "block"
                       :margin-left "auto"
                       :margin-right "24px"}]]]
-            [:.graffle {:box-shadow left-shadow
+            [:.graffle {:animation "FadeUp 500ms ease"
+                        :box-shadow left-shadow
                         :flex 1
                         :position "relative"
                         :z-index 2}
              [:.workspace-title {:color "white"
+                                 :font-size "20px"
                                  :left "32px"
                                  :position "absolute"
-                                 :top "32px"}]]]])
+                                 :top "32px"
+                                 :text-shadow "2px 2px 4px rgba(0,0,0,0.5)"}]]]])
 
 
 (def AddResource
   [:.add-resource {:background (str highlight " !important")
-                   :bottom "48px !important"
-                   :right "48px !important"
-                   :transition "right 500ms ease"
+                   :bottom "40px !important"
+                   :right "40px !important"
+                   :transition "transform 500ms ease"
                    :z-index 5}
-   [:&.panel-open {:right "400px !important"}]])
+   [:&.panel-open {:transform "translateX(-360px)"}]])
 
 (def TitleBar
   [:.title-bar {:align-items "center"
@@ -103,7 +112,7 @@
                 :box-shadow bottom-shadow
                 :color "white"
                 :display "flex"
-                :height "88px"
+                :height "48px"
                 :padding "32px"
                 :position "relative"
                 :z-index 20}
@@ -187,6 +196,7 @@
 
    [:.side-panel-content {:height "100%"
                           :max-height "100%"
+                          :min-width "320px"
                           :opacity 0
                           :width "100%"
                           :transition "opacity 500ms ease"}]
@@ -204,7 +214,7 @@
     [:&.open {:transform "rotate(0)"}]]])
 
 (def InfoPanel
-  [:.info-panel {:background black
+  [:.info-panel {:background "rgba(0,0,0,0.72)"
                  :bottom 0
                  :border-radius "8px"
                  :box-shadow shadow
@@ -214,8 +224,9 @@
                  :position "absolute"
                  :width "320px"
                  :top 0
-                 :right "-400px"
-                 :transition "right 500ms ease"
+                 :right 0
+                 :transform "translateX(400px)"
+                 :transition "transform 500ms ease"
                  :z-index 10}
 
    [:.heading {:border-bottom (str "1px solid " border)
@@ -246,17 +257,18 @@
 
    [:.resource {:white-space "pre-wrap"}]
    [:.button {:margin-bottom "16px"}]
-   [:&.open {:right "0px"}]])
+   [:&.open {:right "0px"
+             :transform "translateX(0)"}]])
 
 
 (def WorkspaceLabel
   [:.workspace-label {:border-top (str "1px solid " border)
                       :cursor "pointer"
-                      :padding "24px"
+                      :padding "16px"
                       :position "relative"}
    [:&:last-child {:border-bottom (str "1px solid " border)}]
    [".workspace-label-content:hover .more" {:display "block"}]
-   [:.workspace-label-content {:font-size "16px"
+   [:.workspace-label-content {:font-size "14px"
                                :position "relative"
                                :top "0"
                                :line-height "1.5em"
@@ -312,7 +324,9 @@
     :overflow-y "auto"}])
 
 (def styles
-  [components/ActionButton
+  [FadeInAnim
+   FadeUp
+   components/ActionButton
    components/Button
    components/TextInput
    graffle/Main

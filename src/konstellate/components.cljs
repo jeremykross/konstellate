@@ -49,11 +49,14 @@
                                        [:div {:class "dot"}]
                                        (str r)])
 
-        value-$ (ulmus/map  
-                  (fn [e]
-                    (println "Value:" (.-value (.-target e)))
-                    (.-value (.-target e)))
-                  ((:recurrent/dom-$ sources) "input" "input"))
+        value-$ 
+        (ulmus/start-with!
+          (:name @(:workspace-$ sources))
+          (ulmus/map  
+            (fn [e]
+              (println "Value:" (.-value (.-target e)))
+              (.-value (.-target e)))
+            ((:recurrent/dom-$ sources) "input" "input")))
 
 
         editing?-$ 

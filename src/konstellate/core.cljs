@@ -26,7 +26,8 @@
 
 (defn Main
   [props sources]
-  (let [definitions-$ (ulmus/map (fn [swagger-text]
+  (let [import-$ (ulmus/signal)
+        definitions-$ (ulmus/map (fn [swagger-text]
                                    (:definitions (js->clj
                                                    (.parse js/JSON swagger-text)
                                                    :keywordize-keys true)))
@@ -134,12 +135,18 @@
                                    :yaml
                                    edit-id]
                              r (get-in @(:recurrent/state-$ sources) path)]
+                         (println "PATH:" path)
+                         (println "R:" r)
                        ((state/isolate editor/Editor path)
                         {:kind 
                          (str 
                            "io.k8s.api."
-                           (if (string/includes? (:apiVersion r) "/")
-                             (string/replace (:apiVersion r) "/" ".")
+                           (cond 
+                             (string/includes? (:apiVersion r) "apps")
+                             "apps.v1"
+                             (string/includes? (:apiVersion r) "rbac")
+                             "rbac.v1"
+                             :else
                              (str "core." (:apiVersion r)))
                            "."
                            (:kind r))
@@ -187,7 +194,8 @@
                                     [:div {:class "edit-resource"} "Edit"]]
                                    [:div {:class "info"}
                                     ~(map (fn [{:keys [label value]}]
-                                            [[:h4 {} label]
+                                            [:div {:key label}
+                                             [:h4 {} label]
                                              [:div {} 
                                               (if (empty? (str value))
                                                 "--"
@@ -231,11 +239,52 @@
                (:workspaces
                  @(:recurrent/state-$ sources))))))
 
+    (ulmus/subscribe!
+      ((:recurrent/dom-$ sources) ".import" "click")
+      (fn []
+        (.click (.getElementById js/document "import-file-input"))))
+
+    (ulmus/subscribe!
+      ((:recurrent/dom-$ sources) "#import-file-input" "change")
+      (fn [e]
+        (let [reader (js/FileReader.)
+              files (.-files (.-target e))
+              file (.item files 0)]
+          (set! (.-onload reader)
+                (fn [load-evt]
+                  (let [workspace (keyword (gensym))]
+                    (.safeLoadAll js/jsyaml (.-result (.-target load-evt))
+                                  (fn [js-yaml]
+                                    (let [yaml (js->clj js-yaml :keywordize-keys true)]
+                                      (ulmus/>! import-$
+                                                {:name (first (string/split (.-name file) "."))
+                                                 :workspace-id workspace
+                                                 :yaml (assoc {} (keyword (gensym)) yaml)})))))))
+          (.readAsText reader file))))
+
     {:swagger-$ (ulmus/signal-of [:get])
      :state-$ (:recurrent/state-$ sources)
      :recurrent/state-$ (ulmus/merge
                           (ulmus/signal-of (fn [] initial-state))
                           (ulmus/pickmap :recurrent/state-$ editor-$)
+                          (ulmus/map (fn [import-data]
+                                       (fn [state]
+                                         (-> state
+                                             (assoc-in
+                                               [:workspaces
+                                                (:workspace-id import-data)
+                                                :edited
+                                                :name]
+                                               (or 
+                                                 (:name import-data)
+                                                 "Imported Workspace"))
+                                             (update-in
+                                               [:workspaces
+                                                (:workspace-id import-data)
+                                                :edited
+                                                :yaml]
+                                               merge (:yaml import-data)))))
+                                     import-$)
                           (ulmus/map (fn [selected]
                                        (fn [state]
                                          (assoc-in state
@@ -316,12 +365,13 @@
         (ulmus/map
           (fn [[title-bar-dom side-panel-dom info-panel-dom menu-dom info-panel-open? workspace graffle]]
             [:div {:class "main"}
+             [:input {:id "import-file-input" :type "file" :style {:display "none"}}]
              [:div {:class (str "action-button add-resource " (if info-panel-open? "panel-open"))} "+"]
              title-bar-dom
              menu-dom
              [:div {:class "main-content"}
               side-panel-dom
-              [:div {:class "graffle"}
+              [:div {:class "graffle" :key (:name workspace)}
                [:h4 {:class "workspace-title"} (get workspace :name)]
                graffle]
               info-panel-dom]])
