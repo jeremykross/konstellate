@@ -32,6 +32,34 @@ body * {
   padding: 0;
 }
 
+@keyframes FadeInAnim {
+
+  from {
+    opacity: 0;
+    transform: scale(0.95, 0.95);
+  }
+  
+  to {
+    opacity: 1;
+    transform: scale(1, 1);
+  }
+
+}
+
+@keyframes FadeUp {
+
+  from {
+    opacity: 0;
+    transform: translateY(32px);
+  }
+  
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+}
+
 .action-button {
   line-height: 64px;
   width: 64px;
@@ -117,6 +145,10 @@ body * {
   width: 100%;
 }
 
+.graffle-main svg .relationship-line {
+  transition: stroke 1000ms ease, stroke-width 1000ms ease;
+}
+
 .node.selected {
 
 }
@@ -135,7 +167,7 @@ body * {
 }
 
 .node.deselected .outline {
-  opacity: 0.5;
+  background: #a2a18a;
 }
 
 .node:hover .outline {
@@ -167,7 +199,7 @@ body * {
   border-radius: 50%;
   border: 1px solid transparent;
   height: 16px;
-  transition: opacity 500ms ease, padding 400ms ease;
+  transition: background 1000ms ease, opacity 1000ms ease, padding 400ms ease;
   width: 16px;
 }
 
@@ -178,23 +210,33 @@ body * {
   white-space: nowrap;
   position: absolute;
   font-weight: bold;
-  font-size: 16px;
-  bottom: -32px;
+  font-size: 12px;
+  bottom: -40px;
   pointer-events: none;
-  color: rgba(255,255,255,0.5);
+  transition: color 1000ms ease;
+  color: white;
   left: 50%;
+}
+
+.node .name span {
+  color: rgba(255,255,255,0.5);
+  display: block;
+  font-size: 10px;
+  text-align: center;
+  margin-bottom: 4px;
+  text-transform: uppercase;
 }
 
 .add-resource {
   background: #00a2ff !important;
-  bottom: 48px !important;
-  right: 48px !important;
-  transition: right 500ms ease;
+  bottom: 40px !important;
+  right: 40px !important;
+  transition: transform 500ms ease;
   z-index: 5;
 }
 
 .add-resource.panel-open {
-  right: 400px !important;
+  transform: translateX(-360px);
 }
 
 .floating-menu {
@@ -280,6 +322,7 @@ body * {
 }
 
 .main .main-content .graffle {
+  animation: FadeUp 500ms ease;
   box-shadow: 5px 0px 25px 0 rgba(8, 16, 24, 0.3);
   flex: 1;
   position: relative;
@@ -288,13 +331,15 @@ body * {
 
 .main .main-content .graffle .workspace-title {
   color: white;
+  font-size: 20px;
   left: 32px;
   position: absolute;
   top: 32px;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
 }
 
 .title-bar {
-  height: 88px;
+  height: 48px;
   align-items: center;
   padding: 32px;
   position: relative;
@@ -381,7 +426,7 @@ body * {
 .workspace-label {
   border-top: 1px solid #212b35;
   cursor: pointer;
-  padding: 24px;
+  padding: 16px;
   position: relative;
 }
 
@@ -394,7 +439,7 @@ body * {
 }
 
 .workspace-label .workspace-label-content {
-  font-size: 16px;
+  font-size: 14px;
   position: relative;
   top: 0;
   line-height: 1.5em;
@@ -497,17 +542,18 @@ body * {
 
 .info-panel {
   width: 320px;
-  right: -400px;
+  right: 0;
   top: 0;
   margin: 32px;
+  transform: translateX(400px);
   position: absolute;
   z-index: 10;
   box-shadow: 0 5px 25px 0 rgba(0, 0, 0, 0.6);
   font-size: 14px;
   border-radius: 8px;
   bottom: 0;
-  transition: right 500ms ease;
-  background: #081018;
+  transition: transform 500ms ease;
+  background: rgba(0,0,0,0.72);
   color: #b0bac9;
 }
 
@@ -561,6 +607,7 @@ body * {
 
 .info-panel.open {
   right: 0px;
+  transform: translateX(0);
 }
 
 .side-panel {
@@ -596,6 +643,7 @@ body * {
 .side-panel .side-panel-content {
   height: 100%;
   max-height: 100%;
+  min-width: 320px;
   opacity: 0;
   width: 100%;
   transition: opacity 500ms ease;
