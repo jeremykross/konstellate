@@ -222,6 +222,7 @@
                  :color light-text
                  :font-size "14px"
                  :margin "32px"
+                 :overflow-y "auto"
                  :position "absolute"
                  :width "320px"
                  :top 0
