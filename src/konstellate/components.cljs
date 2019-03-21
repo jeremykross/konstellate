@@ -156,7 +156,7 @@
 
 (recurrent/defcomponent SidePanel
   [props sources]
-  (let [open?-$ (ulmus/reduce not false ((:recurrent/dom-$ sources) ".open-arrow" "click"))]
+  (let [open?-$ (ulmus/reduce not true ((:recurrent/dom-$ sources) ".open-arrow" "click"))]
     {:recurrent/dom-$ (ulmus/map
                         (fn [[open? dom]]
                           `[:div {:class ~(str "side-panel " (if open? "open"))}

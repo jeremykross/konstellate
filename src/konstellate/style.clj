@@ -252,7 +252,7 @@
     [:&:first-child {:margin-top 0}]]
 
    [:.info {:display "grid"
-            :grid-gap "8px"
+            :grid-gap "24px"
             :margin "24px"
             :white-space "pre-wrap"}]
 

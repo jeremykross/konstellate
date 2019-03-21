@@ -90,7 +90,7 @@
            :workspaces-$ workspaces-$})
 
         selected-workspace-$ (ulmus/map
-                               #(apply get %)
+                               #(with-meta (apply get %1) {:id %2})
                                (ulmus/zip workspaces-$
                                           (:selected-$ workspace-list)))
         selected-graffle-$
