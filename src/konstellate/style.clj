@@ -60,7 +60,8 @@
                :margin 0
                :padding 0}]]])
 
-(def Main [:.main {:display "flex"
+(def Main [:.main {:animation "FadeInAnim 500ms ease"
+                   :display "flex"
                    :flex-direction "column"
                    :overflow "hidden"
                    :position "relative"
@@ -328,6 +329,7 @@
 (def styles
   [FadeInAnim
    FadeUp
+   Zoom
    components/ActionButton
    components/Button
    components/TextInput
