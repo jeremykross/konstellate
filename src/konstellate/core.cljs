@@ -57,29 +57,31 @@
           (:recurrent/state-$ sources))
 
 
-        workspace-graffle-$ (ulmus/reduce (fn [acc [gained lost]]
-                                            (merge acc
-                                                   (into 
-                                                     {}
-                                                     (map (fn [k] [k ((state/isolate graffle/Graffle
-                                                                                      [:workspaces k :edited :yaml])
-                                                                       {} 
-                                                                       (assoc 
-                                                                         (select-keys sources [:recurrent/dom-$ :recurrent/state-$])
-                                                                         :selected-nodes-$ 
-                                                                         (ulmus/map
-                                                                           (fn [state]
-                                                                             (get-in state
-                                                                                     [:workspaces
-                                                                                      k
-                                                                                      :edited
-                                                                                      :selected-nodes]))
-                                                                           (:recurrent/state-$ sources))))])
-                                                          gained))))
-                                          {}
-                                          (ulmus/distinct
-                                            (ulmus/map #(map keys %)
-                                                       (ulmus/changed-keys workspaces-$))))
+        workspace-graffle-$
+        (ulmus/reduce
+          (fn [acc [gained lost]]
+            (merge acc
+                   (into 
+                     {}
+                     (map (fn [k] [k ((state/isolate graffle/Graffle
+                                                     [:workspaces k :edited :yaml])
+                                      {} 
+                                      (assoc 
+                                        (select-keys sources [:recurrent/dom-$ :recurrent/state-$])
+                                        :selected-nodes-$ 
+                                        (ulmus/map
+                                          (fn [state]
+                                            (get-in state
+                                                    [:workspaces
+                                                     k
+                                                     :edited
+                                                     :selected-nodes]))
+                                          (:recurrent/state-$ sources))))])
+                          gained))))
+          {}
+          (ulmus/distinct
+            (ulmus/map #(map keys %)
+                       (ulmus/changed-keys workspaces-$))))
 
         workspace-list
         (components/WorkspaceList
@@ -353,7 +355,7 @@
        (ulmus/start-with!
          :workspace
          (ulmus/merge
-           (ulmus/map (constantly :kind-picker)
+           (ulmus/map (fn [e] (println "showing kindpicker: " (.-innerHTML (.-target e))) :kind-picker)
                       ((:recurrent/dom-$ sources) ".add-resource" "click"))
            (ulmus/map (constantly :editor)
                       (ulmus/merge
@@ -366,7 +368,7 @@
           (fn [[title-bar-dom side-panel-dom info-panel-dom menu-dom info-panel-open? workspace graffle]]
             [:div {:class "main"}
              [:input {:id "import-file-input" :type "file" :style {:display "none"}}]
-             [:div {:class (str "action-button add-resource " (if info-panel-open? "panel-open"))} "+"]
+             [:div {:class (str "action-button add-resource " (if info-panel-open? "panel-open")) :key "add-resource"} "+"]
              title-bar-dom
              menu-dom
              [:div {:class "main-content"}
