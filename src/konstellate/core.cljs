@@ -188,14 +188,14 @@
         (components/InfoPanel
           {}
           {:dom-$ (ulmus/map (fn [resource]
-                               (let [description (desc/deployment resource)]
+                               (let [description (desc/describe resource)]
                                  (println description)
                                  `[:div {}
                                    [:div {:class "heading"}
                                     [:h3 {} ~(get-in resource [:metadata :name])]
                                     [:div {:class "edit-resource"} "Edit"]]
                                    [:div {:class "info"}
-                                    ~(map (fn [{:keys [label value]}]
+                                    ~(map (fn [[label value]]
                                             [:div {:key label}
                                              [:h4 {} label]
                                              [:div {} 
@@ -368,7 +368,9 @@
           (fn [[title-bar-dom side-panel-dom info-panel-dom menu-dom info-panel-open? workspace graffle]]
             [:div {:class "main"}
              [:input {:id "import-file-input" :type "file" :style {:display "none"}}]
-             [:div {:class (str "action-button add-resource " (if info-panel-open? "panel-open")) :key "add-resource"} "+"]
+             [:div {:class (str "action-button add-resource "
+                                (if (empty? workspace) "hidden ")
+                                (if info-panel-open? "panel-open")) :key "add-resource"} "+"]
              title-bar-dom
              menu-dom
              [:div {:class "main-content"}

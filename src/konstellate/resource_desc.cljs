@@ -1,19 +1,23 @@
 (ns konstellate.resource-desc
-  (:require [clojure.string :as string]))
+  (:require [clojure.string :as string])
+  (:require-macros [konstellate.resource-desc :refer [defdesc]]))
+
+(defmulti describe :kind)
+
 
 (defn general
   [r]
-  [{:label "Kind"
-    :value (:kind r)}
-   {:label "Labels"
-    :value (string/join "\n" 
-                        (map (fn [[k v]]
-                               (str (name k) " : " v))
-                             (get-in r [:metadata :labels])))}])
+  {"Kind" (:kind r)
+   "Labels" (string/join "\n" 
+                         (map (fn [[k v]]
+                                (str (name k) " : " v))
+                              (get-in r [:metadata :labels])))})
 
-(defn deployment
+(defmethod describe :default [r] {})
+
+(defdesc Deployment
   [r]
-  (into
-    (general r)
-    [{:label "Replicas"
-      :value (get-in r [:spec :replicas])}]))
+  "Replicas" (get-in r [:spec :replicas]))
+
+
+

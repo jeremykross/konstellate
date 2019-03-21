@@ -235,6 +235,10 @@ body * {
   z-index: 5;
 }
 
+.add-resource.hidden {
+  transform: translateY(360px);
+}
+
 .add-resource.panel-open {
   transform: translateX(-360px);
 }

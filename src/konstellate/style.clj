@@ -104,6 +104,7 @@
                    :right "40px !important"
                    :transition "transform 500ms ease"
                    :z-index 5}
+   [:&.hidden {:transform "translateY(360px)"}]
    [:&.panel-open {:transform "translateX(-360px)"}]])
 
 (def TitleBar
