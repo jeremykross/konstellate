@@ -549,6 +549,7 @@ body * {
   right: 0;
   top: 0;
   margin: 32px;
+  overflow-y: auto;
   transform: translateX(400px);
   position: absolute;
   z-index: 10;
