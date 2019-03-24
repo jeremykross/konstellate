@@ -39,6 +39,7 @@
 (defn general
   [r]
   {"Kind" (:kind r)
+   "Name" (get-in r [:metadata :name])
    "Namespace" (or (get-in r [:metadata :namespace]) "default")
    "Labels" (format-kv (get-in r [:metadata :labels]))})
 

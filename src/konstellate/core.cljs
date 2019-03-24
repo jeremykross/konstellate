@@ -179,32 +179,53 @@
                       (:recurrent/dom-$ workspace-list))
            :recurrent/dom-$ (:recurrent/dom-$ sources)})
 
-        info-panel-open?-$
-           (ulmus/map 
-             #(not (empty? %))
-             (ulmus/pickmap :selected-nodes-$ selected-graffle-$))
+        info-panel-open?-$ 
+        (ulmus/map (fn [[a b]]
+                     (println a "," b)
+                     (or a b))
+                   (ulmus/zip
+                     (ulmus/map (comp not empty?)
+                                (ulmus/pickmap :selected-nodes-$ selected-graffle-$))
+                     (ulmus/map (comp not empty?)
+                                (ulmus/pickmap :selected-relations-$ selected-graffle-$))))
 
         info-panel
         (components/InfoPanel
           {}
-          {:dom-$ (ulmus/map (fn [resource]
-                               (let [description (desc/describe resource)]
-                                 (println description)
-                                 `[:div {}
-                                   [:div {:class "heading"}
-                                    [:h3 {} ~(get-in resource [:metadata :name])]
-                                    [:div {:class "edit-resource"} "Edit"]]
-                                   [:div {:class "info"}
-                                    ~(map (fn [[label value]]
-                                            [:div {:key label}
-                                             [:h4 {} label]
-                                             [:div {} 
-                                              (if (empty? (str value))
-                                                "--"
-                                                (str value))]])
-                                          description)]]))
-                             (ulmus/map #(first (vals %))
-                                        (ulmus/pickmap :selected-resources-$ selected-graffle-$)))
+          {:dom-$ (ulmus/map (fn [description]
+                               `[:div {}
+                                 [:div {:class "heading"}
+                                  [:h2 {} ~(:title description)]
+                                  ~(if (not= (:title description) "Relationships")
+                                     [:div {:class "edit-resource"} "Edit"])]
+                                 [:div {:class "info"}
+                                  ~(map (fn [section]
+                                          [:div {:class "section"}
+                                           [:h3 {} (:title section)]
+                                           [:p {} (:desc section)]
+                                           [:div {:class "elem"}
+                                             (map (fn [[title value]]
+                                                    [[:h4 {} (str (name title))]
+                                                     (if (empty? (str value))
+                                                       "--"
+                                                       value)])
+                                                  (:info section))]])
+                                        (:sections description))]])
+                             (ulmus/merge
+                               (ulmus/map 
+                                 (fn [selected-resources]
+                                   (let [desc (desc/describe (first (vals selected-resources)))]
+                                     {:title (get desc "Name")
+                                      :sections [{:title ""
+                                                  :info desc}]}))
+                                 (ulmus/filter #(not (empty? %))
+                                               (ulmus/pickmap :selected-resources-$ selected-graffle-$)))
+                               (ulmus/map (fn [sr]
+                                            (println (map :data sr))
+                                            {:title "Relationships"
+                                             :sections (map :data sr)})
+                                          (ulmus/filter #(not (empty? %))
+                                                        (ulmus/pickmap :selected-connections-$ selected-graffle-$)))))
            :open?-$ info-panel-open?-$
            :recurrent/dom-$ (:recurrent/dom-$ sources)})]
 

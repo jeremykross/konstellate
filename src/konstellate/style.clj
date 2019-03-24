@@ -243,8 +243,16 @@
                       :margin-left "auto"
                       :text-transform "uppercase"}]]
 
-   [:h3 {:color "white"
+   [:p {:margin-bottom "16px"}]
+
+   [:h2 {:color "white"
          :font-size "16px"}]
+
+   [:h3 {:font-size "14px"
+         :font-weight "bold"
+         :letter-spacing "2px"
+         :margin-bottom "8px"
+         :text-transform "uppercase"}]
 
    [:h4 {:font-size "12px"
          :font-weight "bold"
@@ -329,7 +337,6 @@
 (def styles
   [FadeInAnim
    FadeUp
-   Zoom
    components/ActionButton
    components/Button
    components/TextInput
