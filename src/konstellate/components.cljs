@@ -23,7 +23,7 @@
          `[:div {:class ~(str "floating-menu " (if open? "open"))
                  :style ~pos}
            [:ol {}
-            ~@(map (fn [item] [:li {:class (str "floating-menu-item " item)} item]) items)]])
+            ~@(map (fn [item] [:li {:class (str "floating-menu-item " (:value item))} (:label item)]) items)]])
        (ulmus/zip
          (:items-$ sources)
          (:pos-$ sources)
@@ -82,7 +82,8 @@
                             [:div {:class (str "floating-menu " (if menu-open? "open"))}
                              [:ol {}
                               [:li {:class "floating-menu-item action-rename"} "Rename"]
-                              [:li {:class "floating-menu-item action-delete"} "Delete"]]]
+                              [:li {:data-id (str (name (:id props)))
+                                    :class "floating-menu-item action-delete"} "Delete"]]]
                             (if (not editing?)
                               [:div {:class "label-standard-content"}
                                [:div {:class "outer"}
@@ -138,11 +139,16 @@
         kw-id (fn [e]
                 (.stopPropagation e)
                 (keyword (.getAttribute (.-currentTarget e) "data-id")))]
-    {:delete-$ (ulmus/map kw-id ((:recurrent/dom-$ sources) ".workspace-label .yes" "click"))
-     :selected-$ (ulmus/map
-                   kw-id
-                   ((:recurrent/dom-$ sources) ".workspace-label" "click"))
-     :rename-$ (ulmus/pickmerge :rename-$ (ulmus/map vals labels-$))
+    {:delete-$ (ulmus/map kw-id
+                          ((:recurrent/dom-$ sources)
+                           ".action-delete" "click"))
+     :selected-$ 
+     (ulmus/merge
+       (ulmus/map (constantly nil) ((:recurrent/dom-$ sources) ".action-delete" "click"))
+       (ulmus/map
+         kw-id
+         ((:recurrent/dom-$ sources) ".workspace-label" "click")))
+     :rename-$ (ulmus/pickmerge :rename-$ (ulmus/distinct (ulmus/map vals labels-$)))
      :recurrent/dom-$
      (ulmus/map (fn [labels-dom]
                   `[:div {:class "workload-panel"}

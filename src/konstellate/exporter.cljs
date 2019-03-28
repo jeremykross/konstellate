@@ -222,6 +222,7 @@
   [workspaces]
   (let [kustomize (workspaces->kustomize workspaces)
         zip (zip! kustomize)]
+    (println kustomize)
     (save-zip-as! zip "kustomize.zip")))
 
 (defn save-helm!

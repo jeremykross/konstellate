@@ -41,7 +41,12 @@
                  (select-keys sources [:recurrent/dom-$])
                  {:pos-$ (ulmus/signal-of {:top "80px" :right "32px"})
                   :open?-$ (ulmus/reduce not false ((:recurrent/dom-$ sources) ".more" "click"))
-                  :items-$ (ulmus/signal-of ["Export To Yaml" "Export To Kustomize" "Export To Helm"])}))
+                  :items-$ (ulmus/signal-of [{:value "export-yaml"
+                                              :label "Export To Yaml"}
+                                             {:value "export-kustomize"
+                                              :label "Export To Kustomize"}
+                                             {:value "export-helm"
+                                              :label "Export To Helm"}])}))
 
         workspaces-$
         (ulmus/map 
@@ -61,6 +66,7 @@
         (ulmus/reduce
           (fn [acc [gained lost]]
             (merge acc
+                   (apply dissoc acc lost)
                    (into 
                      {}
                      (map (fn [k] [k ((state/isolate graffle/Graffle
@@ -96,7 +102,8 @@
         selected-graffle-$
         (ulmus/distinct
           (ulmus/map
-            #(apply get %) (ulmus/zip workspace-graffle-$ (:selected-$ workspace-list))))
+            #(apply get %)
+            (ulmus/zip workspace-graffle-$ (:selected-$ workspace-list))))
 
         kind-picker
         (editor/KindPicker
@@ -241,7 +248,7 @@
         (.preventDefault e)))
 
     (ulmus/subscribe!
-      ((:recurrent/dom-$ sources) ".floating-menu-item.Export-Kustomize" "click")
+      ((:recurrent/dom-$ sources) ".floating-menu-item.export-kustomize" "click")
       (fn []
         (exporter/save-kustomize!
           (map (fn [[k workspace]]
@@ -250,7 +257,7 @@
                  @(:recurrent/state-$ sources))))))
 
     (ulmus/subscribe!
-      ((:recurrent/dom-$ sources) ".floating-menu-item.Export-Helm" "click")
+      ((:recurrent/dom-$ sources) ".floating-menu-item.export-helm" "click")
       (fn []
         (exporter/save-helm!
           (map (fn [[k workspace]]
@@ -306,12 +313,14 @@
                                      import-$)
                           (ulmus/map (fn [selected]
                                        (fn [state]
-                                         (assoc-in state
-                                                [:workspaces
-                                                 @(:selected-$ workspace-list)
-                                                 :edited
-                                                 :selected-nodes]
-                                                selected)))
+                                         (if @(:selected-$ workspace-list)
+                                           (assoc-in state
+                                                     [:workspaces
+                                                      @(:selected-$ workspace-list)
+                                                      :edited
+                                                      :selected-nodes]
+                                                     selected)
+                                           state)))
                                      (ulmus/distinct
                                        (ulmus/pickmap :selected-nodes-$ selected-graffle-$)))
                           (ulmus/map (fn [e]
@@ -372,7 +381,7 @@
        (ulmus/start-with!
          :workspace
          (ulmus/merge
-           (ulmus/map (fn [e] (println "showing kindpicker: " (.-innerHTML (.-target e))) :kind-picker)
+           (ulmus/map (fn [e] 
                       ((:recurrent/dom-$ sources) ".add-resource" "click"))
            (ulmus/map (constantly :editor)
                       (ulmus/merge
