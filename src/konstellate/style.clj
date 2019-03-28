@@ -216,7 +216,8 @@
     [:&.open {:transform "rotate(0)"}]]])
 
 (def InfoPanel
-  [:.info-panel {:background "rgba(0,0,0,0.72)"
+  [:.info-panel {:background "rgba(0,0,0,0.5)"
+                 :backdrop-filter "blur(10px)"
                  :bottom 0
                  :border-radius "8px"
                  :box-shadow shadow

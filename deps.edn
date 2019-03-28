@@ -3,8 +3,9 @@
         cljsjs/js-yaml {:mvn/version "3.3.1-0"}
         garden {:mvn/version "1.3.6"}
         cljsjs/jszip {:mvn/version "3.1.3-0"}
-        konstellate/components {:git/url "https://github.com/konstellate/components"
-                                :sha "c45cc14f1e2f454608c65007f45a0c8387114f48"}
+        konstellate/components {:local/root "/home/jkross/Projects/konstellate/components"}
+                                ;:git/url "https://github.com/konstellate/components"
+                                ;:sha "c45cc14f1e2f454608c65007f45a0c8387114f48"}
         konstellate/graffle {:local/root "/home/jkross/Projects/konstellate/graffle"}
         konstellate/editor {:local/root "/home/jkross/Projects/konstellate/editor"}
         recurrent {:local/root "/home/jkross/Projects/recurrent"}

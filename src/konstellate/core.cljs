@@ -137,8 +137,6 @@
                                    :yaml
                                    edit-id]
                              r (get-in @(:recurrent/state-$ sources) path)]
-                         (println "PATH:" path)
-                         (println "R:" r)
                        ((state/isolate editor/Editor path)
                         {:kind 
                          (str 
@@ -181,7 +179,6 @@
 
         info-panel-open?-$ 
         (ulmus/map (fn [[a b]]
-                     (println a "," b)
                      (or a b))
                    (ulmus/zip
                      (ulmus/map (comp not empty?)
@@ -221,7 +218,6 @@
                                  (ulmus/filter #(not (empty? %))
                                                (ulmus/pickmap :selected-resources-$ selected-graffle-$)))
                                (ulmus/map (fn [sr]
-                                            (println (map :data sr))
                                             {:title "Relationships"
                                              :sections (map :data sr)})
                                           (ulmus/filter #(not (empty? %))

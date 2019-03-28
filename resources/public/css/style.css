@@ -558,8 +558,9 @@ body * {
   font-size: 14px;
   border-radius: 8px;
   bottom: 0;
+  backdrop-filter: blur(10px);
   transition: transform 500ms ease;
-  background: rgba(0,0,0,0.72);
+  background: rgba(0,0,0,0.5);
   color: #b0bac9;
 }
 

@@ -54,7 +54,6 @@
           (:name @(:workspace-$ sources))
           (ulmus/map  
             (fn [e]
-              (println "Value:" (.-value (.-target e)))
               (.-value (.-target e)))
             ((:recurrent/dom-$ sources) "input" "input")))
 
@@ -69,7 +68,6 @@
 
     {:rename-$ 
      (ulmus/map (fn [new-value] 
-                  (println "new-value:" new-value)
                   {:id (:id props)
                    :new-value new-value})
                 (ulmus/sample-on value-$ (ulmus/filter false? editing?-$)))
@@ -123,7 +121,6 @@
                      (fn [e] (keyword (.getAttribute (.-currentTarget e) "data-id")))
                      ((:recurrent/dom-$ sources) ".workspace-label" "click"))
         labels-$ (ulmus/reduce (fn [acc [added removed]]
-                                 (println (keys acc))
                                  (as-> acc a
                                    (apply dissoc a (keys removed))
                                    (merge
