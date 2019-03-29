@@ -45,7 +45,7 @@
 
 (defn pod-template
   [r]
-  {"Pod Template Labels" (format-kv (get-in r [:spec :template :metadata :labels]))})
+  {"Pod Template Labels" (format-kv (get-in r [:metadata :labels]))})
 
 (defmethod describe :default [r] (general r))
 

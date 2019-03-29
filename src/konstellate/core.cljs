@@ -381,7 +381,7 @@
        (ulmus/start-with!
          :workspace
          (ulmus/merge
-           (ulmus/map (fn [e] 
+           (ulmus/map (constantly :kind-picker)
                       ((:recurrent/dom-$ sources) ".add-resource" "click"))
            (ulmus/map (constantly :editor)
                       (ulmus/merge
