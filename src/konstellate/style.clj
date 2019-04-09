@@ -341,6 +341,10 @@
    components/ActionButton
    components/Button
    components/TextInput
+   components/Modal
+   components/Select
+   components/SelectionModal
+   graffle/ConnectionModalContent
    graffle/Main
    graffle/Node
    AddResource

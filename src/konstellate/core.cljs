@@ -71,7 +71,7 @@
                      {}
                      (map (fn [k] [k ((state/isolate graffle/Graffle
                                                      [:workspaces k :edited :yaml])
-                                      {} 
+                                      {:initial-state {}}
                                       (assoc 
                                         (select-keys sources [:recurrent/dom-$ :recurrent/state-$])
                                         :selected-nodes-$ 
@@ -293,6 +293,7 @@
      :recurrent/state-$ (ulmus/merge
                           (ulmus/signal-of (fn [] initial-state))
                           (ulmus/pickmap :recurrent/state-$ editor-$)
+                          (ulmus/pickmap :recurrent/state-$ selected-graffle-$)
                           (ulmus/map (fn [import-data]
                                        (fn [state]
                                          (-> state
