@@ -38,7 +38,7 @@
         menu-open?-$ 
         (ulmus/merge
           (ulmus/reduce
-            (fn [v e] (.stopPropagation e) true)
+            (fn [v e] (.stopPropagation e) (not v))
             false
             ((:recurrent/dom-$ sources) ".workspace-more" "click"))
           (ulmus/map (constantly false) ((:recurrent/dom-$ sources) :root "click")))
@@ -152,7 +152,11 @@
      :recurrent/dom-$
      (ulmus/map (fn [labels-dom]
                   `[:div {:class "workload-panel"}
-                    ~@labels-dom])
+                    ~@(map-indexed
+                        (fn [idx label-dom]
+                          [:div {:style {:z-index (- (count labels-dom) idx)}}
+                           label-dom])
+                        labels-dom)])
                 (ulmus/pickzip :recurrent/dom-$ (ulmus/map vals labels-$)))}))
 
 

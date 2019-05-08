@@ -41,9 +41,7 @@
                  (select-keys sources [:recurrent/dom-$])
                  {:pos-$ (ulmus/signal-of {:top "80px" :right "32px"})
                   :open?-$ (ulmus/reduce not false ((:recurrent/dom-$ sources) ".more" "click"))
-                  :items-$ (ulmus/signal-of [{:value "export-yaml"
-                                              :label "Export To Yaml"}
-                                             {:value "export-kustomize"
+                  :items-$ (ulmus/signal-of [{:value "export-kustomize"
                                               :label "Export To Kustomize"}
                                              {:value "export-helm"
                                               :label "Export To Helm"}])}))
@@ -71,7 +69,7 @@
                      {}
                      (map (fn [k] [k ((state/isolate graffle/Graffle
                                                      [:workspaces k :edited :yaml])
-                                      {:initial-state {}}
+                                      {}
                                       (assoc 
                                         (select-keys sources [:recurrent/dom-$ :recurrent/state-$])
                                         :selected-nodes-$ 
@@ -116,10 +114,10 @@
 
         editor-$
         (ulmus/merge
-          (ulmus/map (fn [[kind workspace]]
+          (ulmus/map (fn [kind]
                        ((state/isolate editor/Editor
                                        [:workspaces
-                                        workspace
+                                        @(:selected-$ workspace-list)
                                         :edited
                                         :yaml
                                         (keyword (gensym))])
@@ -129,14 +127,7 @@
                                                 :recurrent/state-$
                                                 :swagger-$])
                           :definitions-$ definitions-$)))
-                     (ulmus/distinct
-                       (ulmus/filter
-                         #(every? identity %)
-                         (ulmus/zip
-                           (:selected-$ kind-picker)
-                           (ulmus/sample-on
-                             (:selected-$ workspace-list)
-                             (:selected-$ kind-picker))))))
+                     (:selected-$ kind-picker))
           (ulmus/map (fn [edit-id]
                        (let [path [:workspaces
                                    @(:selected-$ workspace-list)
@@ -423,9 +414,9 @@
     (recurrent.core/start!
       (state/with-state Main)
       {}
-      {:swagger-$                                                                      (recurrent.drivers.http/create!                                                   swagger-path {:with-credentials? false}) 
+      {:swagger-$ (recurrent.drivers.http/create! swagger-path {:with-credentials? false}) 
        :recurrent/dom-$ (recurrent.drivers.rum/create! "app")})))
 
-(set! (.-onerror js/window) #(println %))
+;(set! (.-onerror js/window) #(println %))
 
 (.addEventListener js/document "DOMContentLoaded" start!)
