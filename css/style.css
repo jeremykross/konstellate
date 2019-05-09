@@ -96,7 +96,7 @@ body * {
 }
 
 .button.primary {
-  background: black;
+  background: #00a2ff;
   border: 1px solid transparent;
   color: white;
 }
@@ -123,6 +123,111 @@ body * {
   outline: none;
   padding: 0 16px;
   width: 100%;
+}
+
+.modal-underlay {
+  position: absolute;
+  background: rgba(23, 13, 15, 0.8);
+  left: 0;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  z-index: 50;
+}
+
+.modal-underlay .modal {
+  top: 48px;
+  transform: translateX(-50%);
+  position: absolute;
+  animation: ModalFadeIn 500ms ease;
+  z-index: 100;
+  box-shadow: shadow;
+  border-radius: 4px;
+  background: white;
+  left: 50%;
+}
+
+.modal-underlay .modal .close {
+  line-height: 26px;
+  width: 32px;
+  right: 24px;
+  top: 24px;
+  height: 32px;
+  border: 2px solid black;
+  text-align: center;
+  position: absolute;
+  cursor: pointer;
+  font-size: 18px;
+  border-radius: 50%;
+}
+
+.select {
+
+}
+
+.select label {
+  color: #212b35;
+  display: block;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.select select {
+  appearance: none;
+  width: 100%;
+  height: 56px;
+  -webkit-appearance: none;
+  user-select: none;
+  border: 1px solid lightgrey;
+  padding: 0 16px;
+  outline: none;
+  font-size: 16px;
+  border-radius: 4px;
+  background: white;
+}
+
+.selection-modal input {
+
+}
+
+.connection-modal-content {
+  box-shadow: 2px 2px 4px rgba(0,0,0, 0.25);
+}
+
+.connection-modal-content .padded {
+  padding: 32px;
+}
+
+.connection-modal-content h3 {
+  font-size: 20px;
+  letter-spacing: 1px;
+}
+
+.connection-modal-content .picker {
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-gap: 40px;
+  margin: 52px 0 32px;
+}
+
+.connection-modal-content select {
+  width: 420px;
+}
+
+.connection-modal-content .banner {
+  align-items: center;
+  background: #081018;
+  height: 82px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.connection-modal-content .banner .button {
+  margin-right: 32px;
+  width: 136px;
 }
 
 .graffle-main {
@@ -191,7 +296,7 @@ body * {
 }
 
 .node:hover {
-  padding: 16px;
+  padding: 24px;
 }
 
 .node .outline {
@@ -353,6 +458,11 @@ body * {
   display: flex;
   background: #141d26;
   color: white;
+}
+
+.title-bar .disabled {
+  pointer-events: none;
+  opacity: 0.5;
 }
 
 .title-bar .import {
@@ -706,7 +816,7 @@ body * {
 }
 
 .button.primary {
-  background: black;
+  background: #00a2ff;
   border: 1px solid transparent;
   color: white;
 }
