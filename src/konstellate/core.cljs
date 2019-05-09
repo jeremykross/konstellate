@@ -380,7 +380,9 @@
                         ((:recurrent/dom-$ sources) ".edit-resource" "click")
                         (:selected-$ kind-picker)))
            (ulmus/map (constantly :workspace)
-                      (ulmus/pickmap :save-$ editor-$))))
+                      (ulmus/merge
+                        (:close-$ kind-picker)
+                        (ulmus/pickmap :save-$ editor-$)))))
        {:workspace
         (ulmus/map
           (fn [[title-bar-dom side-panel-dom info-panel-dom menu-dom info-panel-open? workspace graffle]]
