@@ -6,7 +6,7 @@ Visualize Kubernetes Applications
 
 ## What is it?
 
-Konstellate is a UI to create edit and manage Kubernetes resources and their relationships. You can easily create complex yaml and export them as Helm charts or Kustomize templates
+Konstellate is a UI to create edit and manage Kubernetes resources and their relationships. You can easily create complex YAML and export them as Helm charts or Kustomize templates
 
 Try out the alpha build - [Konstellate Demo](https://containership.github.io/konstellate)
 
