@@ -18,7 +18,7 @@ Once you have a few resources created, you can simply drag a line between the tw
 
 ![konstellate-connect](https://user-images.githubusercontent.com/3777243/57794379-81f55880-7711-11e9-8a28-52b9af888fac.gif)
 
-Once your application is created you can clone it in a new workspace and make changes additional changes it to it there. These changes will be reflected as variables in the helm chart or overlays kustomize templates as you export it.
+Once your application is created you can clone it in a new workspace and make additional changes to it there. These changes will be reflected as variables in the helm chart or overlays kustomize templates as you export it.
 
 ![konstellate-kustomize](https://user-images.githubusercontent.com/3777243/57794412-96d1ec00-7711-11e9-8796-7dddefa30532.gif)
 
