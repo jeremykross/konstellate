@@ -27,7 +27,7 @@ Once your application is created you can clone it in a new workspace and make ch
 
 * Warn users if no connection types are available
 * Implement Export YAML
-* Implement Import Helm + Customize
+* Implement Import Helm + Kustomize
 * Update Add/Remove buttons on editor
 
 ## Future Roadmap
