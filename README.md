@@ -22,6 +22,12 @@ Once your application is created you can clone it in a new workspace and make ad
 
 ![konstellate-kustomize](https://user-images.githubusercontent.com/3777243/57794412-96d1ec00-7711-11e9-8796-7dddefa30532.gif)
 
+## How to run konstellate on your machine?
+
+Install Clojure on your machine. If you are using Mac it is as simple as running `brew install clojure`.
+
+Once Clojure is installed, you can `clojure -m figwheel.main -b dev -r`. This will download the dependencies and start the server and open application in the default browser.
+
 
 ## Known Issues
 
